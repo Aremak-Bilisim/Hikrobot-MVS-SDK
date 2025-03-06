@@ -39,7 +39,7 @@ Additionally, ensure that the Hikrobot SDK is installed and accessible from your
 ### Step 2: Run the Project
 Clone or download the repository, then run the script as follows:
 ```bash
-python GrabImage.py
+python GrabImage_OpenCV.py
 ```
 
 The program will enumerate available devices and prompt you to select a device to connect. Once selected, the program will start capturing frames from the chosen camera and display them in real-time.

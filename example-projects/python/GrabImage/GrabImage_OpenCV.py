@@ -43,7 +43,7 @@ def get_frame(cam):
 
 def work_thread(cam=0, pData=0, nDataSize=0):
     """Thread function to capture and display images continuously."""
-    scale = 50  # Scale factor for image resizing
+    scale = input("Enter a scale for OpenCV window size")  # Scale factor for image resizing
 
     while True:
         # Capture a frame from the camera
