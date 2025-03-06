@@ -15,17 +15,23 @@ Expected Outcomes:
 2) Seamless capture and processing of images in various formats.
 3) Flexible and multi-threaded frame acquisition and display.
 
+## 2️⃣ Equipment and Technologies Used
 
-## 2️⃣ Software Used
+### Hardware Components:
+-  **Camera Model:** Hikrobot MV-CA023-10UC
+-  **Lens:** MVL-HF0828M-6MPE
+-  **Camera Stand:** Aremak Adjustable Machine Vision Test Stand
+-  **Lighting:** Hikrobot Shadowless Ring Light(MV-LGES-116-W)
 
-- **Operating System:** Windows/Linux
-- **Software Tools:** 
-  - Python
-  - OpenCV
-  - Hikrobot SDK (MvCamera SDK)
-  - NumPy
+### Software Tools:
+- **Operating System:** Windows
+-  **Programming Language:** Python (Version: 3.13.1)
+-  **Libraries:** OpenCV (Version: 4.11.0.86), NumPy (Version: 2.2.2)
+-  **SDK:** Hikrobot MVS SDK (Version: 4.4.1.3)
+- **IDE:** Visual Studio Code (Version: 1.98.0)
 
-## 3️⃣ Installation and Running Instructions 🚀
+
+## 3️⃣ Installation and Running Instructions 
 
 ### Step 1: Install dependencies
 

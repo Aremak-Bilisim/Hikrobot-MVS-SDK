@@ -3,6 +3,7 @@ import threading
 import msvcrt
 import numpy as np
 import cv2
+import time
 
 from ctypes import *
 
@@ -10,7 +11,7 @@ sys.path.append("MvImport")
 from MvCameraControl_class import *
 
 g_bExit = False  # Global flag to exit the image capture loop
-
+scale = 0
 
 def get_frame(cam):
     """Function to acquire a frame from the camera."""
@@ -23,7 +24,8 @@ def get_frame(cam):
     if ret != 0:
         print(f"Frame not acquired! ret[0x{ret:x}]")
         return None
-
+    
+    start_time = time.time()
     # Cache the image buffer in a byte array
     buf_cache = (c_ubyte * stOutFrame.stFrameInfo.nFrameLen)()
     memmove(byref(buf_cache), stOutFrame.pBufAddr, stOutFrame.stFrameInfo.nFrameLen)
@@ -34,6 +36,8 @@ def get_frame(cam):
 
     # Convert the image from BayerRG to RGB
     rgb_image = cv2.cvtColor(np_image, cv2.COLOR_BayerRG2RGB)
+    
+    print(f"Color conversion duration = {time.time() - start_time:.5f}")
 
     # Free the image buffer after use
     cam.MV_CC_FreeImageBuffer(stOutFrame)
@@ -43,8 +47,7 @@ def get_frame(cam):
 
 def work_thread(cam=0, pData=0, nDataSize=0):
     """Thread function to capture and display images continuously."""
-    scale = input("Enter a scale for OpenCV window size")  # Scale factor for image resizing
-
+    global scale
     while True:
         # Capture a frame from the camera
         frame = get_frame(cam)
@@ -81,7 +84,10 @@ if __name__ == "__main__":
     deviceList = MV_CC_DEVICE_INFO_LIST()  # Create a device info list
     tlayerType = (MV_GIGE_DEVICE | MV_USB_DEVICE | MV_GENTL_CAMERALINK_DEVICE
                   | MV_GENTL_CXP_DEVICE | MV_GENTL_XOF_DEVICE)
-
+    
+    
+    scale = int(input("Enter a scale for window and press enter:"))  # Scale factor for image resizing
+    
     # Enumerate all connected devices
     ret = MvCamera.MV_CC_EnumDevices(tlayerType, deviceList)
     if ret != 0:
