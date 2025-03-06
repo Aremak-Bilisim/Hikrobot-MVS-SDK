@@ -33,12 +33,12 @@ def get_frame(cam):
     np_image = np_image.reshape((stOutFrame.stFrameInfo.nHeight, stOutFrame.stFrameInfo.nWidth))
 
     # Convert the image from BayerRG to RGB
-    bgr_image = cv2.cvtColor(np_image, cv2.COLOR_BayerRG2RGB)
+    rgb_image = cv2.cvtColor(np_image, cv2.COLOR_BayerRG2RGB)
 
     # Free the image buffer after use
     cam.MV_CC_FreeImageBuffer(stOutFrame)
 
-    return bgr_image  # Return the processed image
+    return rgb_image  # Return the processed image
 
 
 def work_thread(cam=0, pData=0, nDataSize=0):
