@@ -2,6 +2,7 @@
 #include <Windows.h>
 #include <process.h>
 #include <conio.h>
+#include <opencv2/opencv.hpp>
 #include "./Includes/MvCameraControl.h"
 
 bool g_bExit = false;
@@ -9,14 +10,14 @@ bool g_bExit = false;
 // ch:等待按键输入 | en:Wait for key press
 void WaitForKeyPress(void)
 {
-    while(!_kbhit())
+    while (!_kbhit())
     {
         Sleep(10);
     }
     _getch();
 }
 
-bool PrintDeviceInfo(MV_CC_DEVICE_INFO* pstMVDevInfo)
+bool PrintDeviceInfo(MV_CC_DEVICE_INFO *pstMVDevInfo)
 {
     if (NULL == pstMVDevInfo)
     {
@@ -31,8 +32,8 @@ bool PrintDeviceInfo(MV_CC_DEVICE_INFO* pstMVDevInfo)
         int nIp4 = (pstMVDevInfo->SpecialInfo.stGigEInfo.nCurrentIp & 0x000000ff);
 
         // ch:打印当前相机ip和用户自定义名字 | en:print current ip and user defined name
-        printf("CurrentIp: %d.%d.%d.%d\n" , nIp1, nIp2, nIp3, nIp4);
-        printf("UserDefinedName: %s\n\n" , pstMVDevInfo->SpecialInfo.stGigEInfo.chUserDefinedName);
+        printf("CurrentIp: %d.%d.%d.%d\n", nIp1, nIp2, nIp3, nIp4);
+        printf("UserDefinedName: %s\n\n", pstMVDevInfo->SpecialInfo.stGigEInfo.chUserDefinedName);
     }
     else if (pstMVDevInfo->nTLayerType == MV_USB_DEVICE)
     {
@@ -72,21 +73,34 @@ bool PrintDeviceInfo(MV_CC_DEVICE_INFO* pstMVDevInfo)
     return true;
 }
 
-static  unsigned int __stdcall WorkThread(void* pUser)
+static unsigned int __stdcall WorkThread(void *pUser)
 {
     int nRet = MV_OK;
     MV_FRAME_OUT stOutFrame = {0};
+    cv::Mat frame;
+    int scale = 50; // Scale factor for image resizing
 
-    while(true)
+    while (true)
     {
         nRet = MV_CC_GetImageBuffer(pUser, &stOutFrame, 1000);
         if (nRet == MV_OK)
         {
-            printf("Get Image Buffer: Width[%d], Height[%d], FrameNum[%d]\n",
-                stOutFrame.stFrameInfo.nExtendWidth, stOutFrame.stFrameInfo.nExtendHeight, stOutFrame.stFrameInfo.nFrameNum);
+            // Convert the buffer into a cv::Mat and reshape it to image dimensions
+            frame = cv::Mat(stOutFrame.stFrameInfo.nHeight, stOutFrame.stFrameInfo.nWidth, CV_8UC1, stOutFrame.pBufAddr);
+
+            // Convert the image from BayerRG to RGB
+            cv::cvtColor(frame, frame, cv::COLOR_BayerRG2RGB);
+
+            // Resize the frame based on the scale
+            cv::Mat img;
+            cv::resize(frame, img, cv::Size(), scale / 100.0, scale / 100.0, cv::INTER_AREA);
+
+            // Display the captured frame
+            cv::imshow("Captured Image", img);
+            cv::waitKey(1);
 
             nRet = MV_CC_FreeImageBuffer(pUser, &stOutFrame);
-            if(nRet != MV_OK)
+            if (nRet != MV_OK)
             {
                 printf("Free Image Buffer fail! nRet [0x%x]\n", nRet);
             }
@@ -95,7 +109,7 @@ static  unsigned int __stdcall WorkThread(void* pUser)
         {
             printf("Get Image fail! nRet [0x%x]\n", nRet);
         }
-        if(g_bExit)
+        if (g_bExit)
         {
             break;
         }
@@ -107,17 +121,17 @@ static  unsigned int __stdcall WorkThread(void* pUser)
 int main()
 {
     int nRet = MV_OK;
-    void* handle = NULL;
+    void *handle = NULL;
 
-    do 
+    do
     {
-		// ch:初始化SDK | en:Initialize SDK
-		nRet = MV_CC_Initialize();
-		if (MV_OK != nRet)
-		{
-			printf("Initialize SDK fail! nRet [0x%x]\n", nRet);
-			break;
-		}
+        // ch:初始化SDK | en:Initialize SDK
+        nRet = MV_CC_Initialize();
+        if (MV_OK != nRet)
+        {
+            printf("Initialize SDK fail! nRet [0x%x]\n", nRet);
+            break;
+        }
 
         // ch:枚举设备 | en:Enum device
         MV_CC_DEVICE_INFO_LIST stDeviceList;
@@ -134,21 +148,21 @@ int main()
             for (unsigned int i = 0; i < stDeviceList.nDeviceNum; i++)
             {
                 printf("[device %d]:\n", i);
-                MV_CC_DEVICE_INFO* pDeviceInfo = stDeviceList.pDeviceInfo[i];
+                MV_CC_DEVICE_INFO *pDeviceInfo = stDeviceList.pDeviceInfo[i];
                 if (NULL == pDeviceInfo)
                 {
                     break;
-                } 
-                PrintDeviceInfo(pDeviceInfo);            
-            }  
-        } 
+                }
+                PrintDeviceInfo(pDeviceInfo);
+            }
+        }
         else
         {
             printf("Find No Devices!\n");
             break;
         }
 
-        printf("Please Input camera index(0-%d):", stDeviceList.nDeviceNum-1);
+        printf("Please Input camera index(0-%d):", stDeviceList.nDeviceNum - 1);
         unsigned int nIndex = 0;
         scanf_s("%d", &nIndex);
 
@@ -180,8 +194,8 @@ int main()
             int nPacketSize = MV_CC_GetOptimalPacketSize(handle);
             if (nPacketSize > 0)
             {
-                nRet = MV_CC_SetIntValueEx(handle,"GevSCPSPacketSize",nPacketSize);
-                if(nRet != MV_OK)
+                nRet = MV_CC_SetIntValueEx(handle, "GevSCPSPacketSize", nPacketSize);
+                if (nRet != MV_OK)
                 {
                     printf("Warning: Set Packet Size fail nRet [0x%x]!", nRet);
                 }
@@ -209,7 +223,7 @@ int main()
         }
 
         unsigned int nThreadID = 0;
-        void* hThreadHandle = (void*) _beginthreadex( NULL , 0 , WorkThread , handle, 0 , &nThreadID );
+        void *hThreadHandle = (void *)_beginthreadex(NULL, 0, WorkThread, handle, 0, &nThreadID);
         if (NULL == hThreadHandle)
         {
             break;
@@ -242,23 +256,15 @@ int main()
         if (MV_OK != nRet)
         {
             printf("Destroy Handle fail! nRet [0x%x]\n", nRet);
-            break;
         }
-		handle = NULL;
     } while (0);
- 
-	if (handle != NULL)
-	{
-		MV_CC_DestroyHandle(handle);
-		handle = NULL;
-	}
-    
 
-	// ch:反初始化SDK | en:Finalize SDK
-	MV_CC_Finalize();
-
-    printf("Press a key to exit.\n");
-    WaitForKeyPress();
+    // ch:反初始化SDK | en:Uninitialize SDK
+    nRet = MV_CC_Finalize();
+    if (MV_OK != nRet)
+    {
+        printf("Finalize SDK fail! nRet [0x%x]\n", nRet);
+    }
 
     return 0;
 }

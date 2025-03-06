@@ -1,0 +1,7 @@
+{
+  "files.associations": {
+    "*.embeddedhtml": "html",
+    "thread": "cpp"
+  },
+  "cmake.sourceDirectory": "C:/Users/Syed/Desktop/Hikrobot-MVS-SDK/example-projects/cpp"
+}
