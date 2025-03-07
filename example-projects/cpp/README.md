@@ -25,7 +25,7 @@ GrabImage_OpenCV is a real-time image acquisition and processing project that in
 
 ### Software Tools:
 - **Operating System:** Windows 10/11
-- **Programming Language:** C#
+- **Programming Language:** C++
 - **Libraries:** OpenCV (Version: 4.11.0)
 - **SDK:** Hikrobot MVS SDK (Version: 4.4.1.3)
 - **Build Tools:** Microsoft Visual Studio 2015
@@ -35,8 +35,7 @@ GrabImage_OpenCV is a real-time image acquisition and processing project that in
 ### Prerequisites:
 1. Install **MvCamera SDK** and ensure drivers are properly set up.
 2. Install **OpenCV** for image processing.
-3. Install .NET Framework 4.8 Developer Pack if you don't have it
-4. Set up a development environment with **Visual Studio**.
+3. Set up a development environment with **Visual Studio**.
 
 ### Compilation Instructions:
 1. Clone or download the source code.
@@ -59,3 +58,6 @@ GrabImage_OpenCV is a real-time image acquisition and processing project that in
 2. Select the camera index from the listed devices.
 3. The captured frames will be displayed in an OpenCV window.
 4. Press **Esc** to exit and properly release resources.
+
+
+
