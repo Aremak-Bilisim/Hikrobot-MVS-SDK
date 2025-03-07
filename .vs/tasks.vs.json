@@ -1,0 +1,15 @@
+{
+  "version": "0.2.1",
+  "tasks": [
+    {
+      "taskLabel": "task-Hikrobot-MVS-SDK",
+      "appliesTo": "/",
+      "type": "launch"
+    },
+    {
+      "taskLabel": "task-main",
+      "appliesTo": "example-projects/cpp/src/main.cpp",
+      "type": "launch"
+    }
+  ]
+}
