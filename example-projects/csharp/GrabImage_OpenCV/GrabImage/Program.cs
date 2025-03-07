@@ -42,7 +42,7 @@ namespace GrabImage
 
                             using (Mat colorImg = new Mat())
                             {
-                                // Convert from Bayer to RGB directly instead of BGR
+                                // Convert from Bayer BG to BGR
                                 Cv2.CvtColor(rawImg, colorImg, ColorConversionCodes.BayerBG2BGR);
 
                                 // Display the image with correct colors
@@ -84,13 +84,13 @@ namespace GrabImage
         {
             int nRet = MyCamera.MV_OK;
 
-            // ch: 初始化 SDK | en: Initialize SDK
+            // Initialize SDK
             MyCamera.MV_CC_Initialize_NET();
 
             MyCamera device = new MyCamera();
             do
             {
-                // ch:枚举设备 | en:Enum device
+                // Enum device
                 MyCamera.MV_CC_DEVICE_INFO_LIST stDevList = new MyCamera.MV_CC_DEVICE_INFO_LIST();
                 nRet = MyCamera.MV_CC_EnumDevices_NET(MyCamera.MV_GIGE_DEVICE | MyCamera.MV_USB_DEVICE, ref stDevList);
                 if (MyCamera.MV_OK != nRet)
@@ -104,9 +104,9 @@ namespace GrabImage
                     break;
                 }
 
-                MyCamera.MV_CC_DEVICE_INFO stDevInfo;                            // 通用设备信息
+                MyCamera.MV_CC_DEVICE_INFO stDevInfo;                  
 
-                // ch:打印设备信息 en:Print device info
+                // Print device info
                 for (Int32 i = 0; i < stDevList.nDeviceNum; i++)
                 {
                     stDevInfo = (MyCamera.MV_CC_DEVICE_INFO)Marshal.PtrToStructure(stDevList.pDeviceInfo[i], typeof(MyCamera.MV_CC_DEVICE_INFO));
@@ -150,7 +150,7 @@ namespace GrabImage
                 }
                 stDevInfo = (MyCamera.MV_CC_DEVICE_INFO)Marshal.PtrToStructure(stDevList.pDeviceInfo[nDevIndex], typeof(MyCamera.MV_CC_DEVICE_INFO));
 
-                // ch:创建设备 | en:Create device
+                // Create device
                 nRet = device.MV_CC_CreateDevice_NET(ref stDevInfo);
                 if (MyCamera.MV_OK != nRet)
                 {
@@ -158,7 +158,7 @@ namespace GrabImage
                     break;
                 }
 
-                // ch:打开设备 | en:Open device
+                // Open device
                 nRet = device.MV_CC_OpenDevice_NET();
                 if (MyCamera.MV_OK != nRet)
                 {
@@ -166,7 +166,7 @@ namespace GrabImage
                     break;
                 }
 
-                // ch:探测网络最佳包大小(只对GigE相机有效) | en:Detection network optimal package size(It only works for the GigE camera)
+                // Detection network optimal package size(It only works for the GigE camera)
                 if (stDevInfo.nTLayerType == MyCamera.MV_GIGE_DEVICE)
                 {
                     int nPacketSize = device.MV_CC_GetOptimalPacketSize_NET();
@@ -184,14 +184,14 @@ namespace GrabImage
                     }
                 }
 
-                // ch:设置触发模式为off || en:set trigger mode as off
+                // set trigger mode as off
                 if (MyCamera.MV_OK != device.MV_CC_SetEnumValue_NET("TriggerMode", 0))
                 {
                     Console.WriteLine("Set TriggerMode failed:{0:x8}", nRet);
                     break;
                 }
 
-                // ch:开启抓图 | en:start grab
+                // start grab
                 nRet = device.MV_CC_StartGrabbing_NET();
                 if (MyCamera.MV_OK != nRet)
                 {
@@ -208,7 +208,7 @@ namespace GrabImage
                 g_bExit = true;
                 Thread.Sleep(1000);
 
-                // ch:停止抓图 | en:Stop grab image
+                // Stop grab image
                 nRet = device.MV_CC_StopGrabbing_NET();
                 if (MyCamera.MV_OK != nRet)
                 {
@@ -216,7 +216,7 @@ namespace GrabImage
                     break;
                 }
 
-                // ch:关闭设备 | en:Close device
+                // Close device
                 nRet = device.MV_CC_CloseDevice_NET();
                 if (MyCamera.MV_OK != nRet)
                 {
@@ -224,7 +224,7 @@ namespace GrabImage
                     break;
                 }
 
-                // ch:销毁设备 | en:Destroy device
+                // Destroy device
                 nRet = device.MV_CC_DestroyDevice_NET();
                 if (MyCamera.MV_OK != nRet)
                 {
@@ -235,7 +235,7 @@ namespace GrabImage
 
             if (MyCamera.MV_OK != nRet)
             {
-                // ch:销毁设备 | en:Destroy device
+                // Destroy device
                 nRet = device.MV_CC_DestroyDevice_NET();
                 if (MyCamera.MV_OK != nRet)
                 {
@@ -243,7 +243,7 @@ namespace GrabImage
                 }
             }
 
-            // ch: 反初始化SDK | en: Finalize SDK
+            // Finalize SDK
             MyCamera.MV_CC_Finalize_NET();
             
         }
