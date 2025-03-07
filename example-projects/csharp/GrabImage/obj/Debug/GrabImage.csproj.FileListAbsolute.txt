@@ -1,0 +1,5 @@
+C:\Users\Carnifex\Desktop\Hikrobot-MVS-SDK\example-projects\csharp\GrabImage\bin\Debug\MVCamera.cs
+C:\Users\Carnifex\Desktop\Hikrobot-MVS-SDK\example-projects\csharp\GrabImage\bin\Debug\GrabImage.exe
+C:\Users\Carnifex\Desktop\Hikrobot-MVS-SDK\example-projects\csharp\GrabImage\bin\Debug\GrabImage.pdb
+C:\Users\Carnifex\Desktop\Hikrobot-MVS-SDK\example-projects\csharp\GrabImage\obj\Debug\GrabImage.exe
+C:\Users\Carnifex\Desktop\Hikrobot-MVS-SDK\example-projects\csharp\GrabImage\obj\Debug\GrabImage.pdb
