@@ -1,8 +1,9 @@
+﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
 VisualStudioVersion = 14.0.23107.0
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GrabImage", "GrabImage.csproj", "{CC044073-F448-4EBC-869C-B801F40C8560}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GrabImage", "GrabImage\GrabImage.csproj", "{5CC162D5-3F4A-4EB7-9AE7-92BEC883A073}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -10,15 +11,12 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{CC044073-F448-4EBC-869C-B801F40C8560}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{CC044073-F448-4EBC-869C-B801F40C8560}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{CC044073-F448-4EBC-869C-B801F40C8560}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{CC044073-F448-4EBC-869C-B801F40C8560}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5CC162D5-3F4A-4EB7-9AE7-92BEC883A073}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5CC162D5-3F4A-4EB7-9AE7-92BEC883A073}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5CC162D5-3F4A-4EB7-9AE7-92BEC883A073}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5CC162D5-3F4A-4EB7-9AE7-92BEC883A073}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
-	EndGlobalSection
-	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {8675C722-A47E-4605-84CF-D553DC55D18B}
 	EndGlobalSection
 EndGlobal
