@@ -1,18 +1,20 @@
-# Grab Image
+# GrabImage_OpenCV
 
 ## 1️⃣ Project Overview
-This project captures frames from a camera using the MvCamera SDK, processes them (converts from Bayer to RGB), and displays the resized frames in a window. The purpose of this project is to demonstrate real-time image capture and processing from supported camera devices, allowing users to easily visualize the captured frames.
+GrabImage_OpenCV is a real-time image acquisition and processing project that integrates Hikrobot cameras with MvCamera SDK and OpenCV. The system captures frames, converts them from Bayer to RGB, and displays them in an OpenCV window, providing a flexible and efficient solution for visualization.
 
-Key Objectives:
+Key Features:
 
-1) Capture and process frames from cameras using the MvCamera SDK.
-2) Display the captured images in real-time with OpenCV.
-3) Implement camera configuration options like Gain and Exposure Time.
+1)  **Seamless Camera Integration** – Captures frames from Hikrobot cameras using the MvCamera SDK.
+2)  **Adjustable Camera Parameters**– Modify Gain, Exposure Time, and other settings dynamically.
+3)  **Real-Time Image Processing** – Converts Bayer images to OpenCV Mat format and applies processing functions.
+4)  **Multi-Threaded Frame Acquisition** – Efficient, optimized frame handling for smooth performance.
+5)  **Live Display** – Processed frames are resized and shown in an OpenCV window.
 
 Expected Outcomes:
 
 1) Real-time display of resized frames.
-2) Seamless capture and processing of images in various formats.
+2) Seamless capture and processing of images in Bayer format.
 3) Flexible and multi-threaded frame acquisition and display.
 
 ## 2️⃣ Equipment and Technologies Used
@@ -24,7 +26,7 @@ Expected Outcomes:
 -  **Lighting:** Hikrobot Shadowless Ring Light(MV-LGES-116-W)
 
 ### Software Tools:
-- **Operating System:** Windows
+- **Operating System:** Windows 10
 -  **Programming Language:** Python (Version: 3.13.1)
 -  **Libraries:** OpenCV (Version: 4.11.0.86), NumPy (Version: 2.2.2)
 -  **SDK:** Hikrobot MVS SDK (Version: 4.4.1.3)
