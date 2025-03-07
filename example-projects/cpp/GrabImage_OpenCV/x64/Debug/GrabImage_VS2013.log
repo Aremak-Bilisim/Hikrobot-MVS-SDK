@@ -1,0 +1,9 @@
+﻿Build started 07/03/2025 4:59:31 pm.
+     1>Project "C:\Users\Syed\Desktop\Aremak\Hikrobot-MVS-SDK\example-projects\cpp\GrabImage_OpenCV\GrabImage_VS2013.vcxproj" on node 2 (Build target(s)).
+     1>Link:
+         GrabImage_VS2013.vcxproj -> C:\Users\Syed\Desktop\Aremak\Hikrobot-MVS-SDK\example-projects\cpp\GrabImage_OpenCV\x64\Debug\GrabImage.exe
+     1>Done Building Project "C:\Users\Syed\Desktop\Aremak\Hikrobot-MVS-SDK\example-projects\cpp\GrabImage_OpenCV\GrabImage_VS2013.vcxproj" (Build target(s)).
+
+Build succeeded.
+
+Time Elapsed 00:00:00.08
