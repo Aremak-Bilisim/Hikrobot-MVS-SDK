@@ -38,7 +38,7 @@ def getOpenCVImage(cam):
 
 def create_trackbar(min_e, max_e, min_g, max_g):
     cv2.namedWindow("Settings", cv2.WINDOW_NORMAL)
-    cv2.createTrackbar("Exposure", "Settings", int(min_e), int(max_e), lambda x: None)
+    cv2.createTrackbar("Exposure", "Settings", int(min_e), 80000, lambda x: None)
     cv2.createTrackbar("Gain", "Settings", int(min_g), int(max_g), lambda x: None)
     
     cam.MV_CC_SetFloatValue("ExposureTime", float(8000))
