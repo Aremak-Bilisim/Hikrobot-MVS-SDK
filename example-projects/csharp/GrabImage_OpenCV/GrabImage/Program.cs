@@ -3,13 +3,16 @@ using MvCamCtrl.NET;
 using System.Runtime.InteropServices;
 using System.Threading;
 using OpenCvSharp;
+using System.Diagnostics;
 
 namespace GrabImage
 {
     class GrabImage
     {
         static bool g_bExit = false;
-
+        static int count = 0;
+        static double sum = 0.0;
+        static int maxAllowedExposure = 1000000;
 
         static int minExposure = 1000; // Set this to your camera's minimum exposure value
         static int maxExposure = 500000; // Set this to your camera's maximum exposure value
@@ -49,6 +52,9 @@ namespace GrabImage
                         int height = stImageOut.stFrameInfo.nHeight;
                         int dataSize = (int)stImageOut.stFrameInfo.nFrameLen;
 
+                        Stopwatch stopwatch = new Stopwatch();
+                        stopwatch.Start();
+
                         // Create a byte array to hold the image data
                         byte[] imageData = new byte[dataSize];
                         Marshal.Copy(stImageOut.pBufAddr, imageData, 0, dataSize);
@@ -66,6 +72,17 @@ namespace GrabImage
                                 // Display the image with correct colors
                                 Cv2.ImShow(windowName, colorImg);
                             }
+
+                            stopwatch.Stop();
+                            TimeSpan elapsedTime = stopwatch.Elapsed;
+                            count++;
+
+                            if (count < 50)
+                                sum += elapsedTime.TotalSeconds;
+                            else if (count == 50)
+                                Console.WriteLine("Average color convertion time: " + sum / 50 + " seconds");
+
+                            
 
                             // Wait for 1ms to process GUI events
                             int key = Cv2.WaitKey(1);
@@ -240,12 +257,15 @@ namespace GrabImage
                 int currentExposure = (int)exposureLimits.fCurValue;
                 int currentGain = (int)gainLimits.fCurValue;
 
-
-
-                maxExposure = 80000;
+                maxExposure = (int)exposureLimits.fMax;
+                if (maxExposure >= maxAllowedExposure)
+                {
+                    maxExposure = maxAllowedExposure;
+                }
                 maxGain = (int)gainLimits.fMax;
                 minExposure = (int)exposureLimits.fMin;
                 minGain = (int)gainLimits.fMin;
+      
 
 
                 Thread hReceiveImageThreadHandle = new Thread(ReceiveImageWorkThread);
