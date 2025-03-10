@@ -10,6 +10,13 @@ namespace GrabImage
     {
         static bool g_bExit = false;
 
+
+        static int minExposure = 1000; // Set this to your camera's minimum exposure value
+        static int maxExposure = 500000; // Set this to your camera's maximum exposure value
+        static int minGain = 0; // Set this to your camera's minimum gain value
+        static int maxGain = 100; // Set this to your camera's maximum gain value
+
+
         public static void ReceiveImageWorkThread(object obj)
         {
             int nRet = MyCamera.MV_OK;
@@ -19,6 +26,17 @@ namespace GrabImage
             // Create a window to display the image
             string windowName = "Camera Feed";
             Cv2.NamedWindow(windowName);
+
+            // Create a window for trackbars
+            string settingsWindow = "Settings";
+            Cv2.NamedWindow(settingsWindow);
+
+            // Create trackbars for exposure and gain
+
+
+            // Create trackbars for exposure and gain
+            Cv2.CreateTrackbar("Exposure", settingsWindow, ref minExposure, maxExposure, null);
+            Cv2.CreateTrackbar("Gain", settingsWindow, ref minGain, maxGain, null);
 
             while (true)
             {
@@ -74,11 +92,23 @@ namespace GrabImage
                 {
                     break;
                 }
+
+                // Get trackbar positions
+                int exposure = Cv2.GetTrackbarPos("Exposure", settingsWindow);
+                int gain = Cv2.GetTrackbarPos("Gain", settingsWindow);
+
+                // Set camera parameters
+                device.MV_CC_SetFloatValue_NET("ExposureTime", (float)exposure);
+                device.MV_CC_SetFloatValue_NET("Gain", (float)gain);
             }
 
             // Clean up
             Cv2.DestroyWindow(windowName);
+            Cv2.DestroyWindow(settingsWindow);
         }
+
+
+        
 
         static void Main(string[] args)
         {
@@ -104,7 +134,7 @@ namespace GrabImage
                     break;
                 }
 
-                MyCamera.MV_CC_DEVICE_INFO stDevInfo;                  
+                MyCamera.MV_CC_DEVICE_INFO stDevInfo;
 
                 // Print device info
                 for (Int32 i = 0; i < stDevList.nDeviceNum; i++)
@@ -199,6 +229,25 @@ namespace GrabImage
                     break;
                 }
 
+                // Get exposure and gain limits from the camera
+                MyCamera.MVCC_FLOATVALUE exposureLimits = new MyCamera.MVCC_FLOATVALUE();
+                MyCamera.MVCC_FLOATVALUE gainLimits = new MyCamera.MVCC_FLOATVALUE();
+
+                device.MV_CC_GetFloatValue_NET("ExposureTime", ref exposureLimits);
+                device.MV_CC_GetFloatValue_NET("Gain", ref gainLimits);
+
+                // Variables to hold current trackbar positions
+                int currentExposure = (int)exposureLimits.fCurValue;
+                int currentGain = (int)gainLimits.fCurValue;
+
+
+
+                maxExposure = 80000;
+                maxGain = (int)gainLimits.fMax;
+                minExposure = (int)exposureLimits.fMin;
+                minGain = (int)gainLimits.fMin;
+
+
                 Thread hReceiveImageThreadHandle = new Thread(ReceiveImageWorkThread);
                 hReceiveImageThreadHandle.Start(device);
 
@@ -245,7 +294,6 @@ namespace GrabImage
 
             // Finalize SDK
             MyCamera.MV_CC_Finalize_NET();
-            
         }
     }
 }

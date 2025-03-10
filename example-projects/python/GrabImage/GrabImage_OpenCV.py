@@ -2,9 +2,14 @@ import sys
 import ctypes
 import numpy as np
 import cv2
+import time
 
 sys.path.append("../../../common/dependencies/MvImport")
 from MvCameraControl_class import *
+
+count = 0
+sum = 0
+
 
 def set_camera_settings(cam):
     # Set camera parameters
@@ -12,6 +17,7 @@ def set_camera_settings(cam):
     cam.MV_CC_SetEnumValue("GainAuto", 0)  # Disable auto gain
 
 def getOpenCVImage(cam):
+    global count, sum
     # Initialize frame buffer
     stOutFrame = MV_FRAME_OUT()
     ctypes.memset(ctypes.byref(stOutFrame), 0, ctypes.sizeof(stOutFrame))
@@ -21,6 +27,7 @@ def getOpenCVImage(cam):
         print(f"Failed to get image buffer! Error code: 0x{ret:X}")
         sys.exit()
 
+    start_time = time.time()
     # Convert to OpenCV Image
     buf_cache = (ctypes.c_ubyte * stOutFrame.stFrameInfo.nFrameLen)()
     ctypes.memmove(ctypes.byref(buf_cache), stOutFrame.pBufAddr, stOutFrame.stFrameInfo.nFrameLen)
@@ -30,6 +37,16 @@ def getOpenCVImage(cam):
 
     np_image = np.ctypeslib.as_array(buf_cache).reshape(height, width)
     cv_image = cv2.cvtColor(np_image, cv2.COLOR_BayerRG2RGB)
+    
+    
+    if (count < 50):
+        sum += (time.time()-start_time)
+        count += 1
+    elif (count == 50):
+        print(f"Average color conversion time: {(sum / 50):.5f} seconds")
+        count += 1
+        
+    
     cv_image = cv2.resize(cv_image, (0, 0), fx=scale_factor, fy=scale_factor, interpolation=cv2.INTER_LINEAR)
 
     cam.MV_CC_FreeImageBuffer(stOutFrame)  # Free buffer after use
@@ -37,14 +54,24 @@ def getOpenCVImage(cam):
     return cv_image
 
 def create_trackbar(min_e, max_e, min_g, max_g):
+    
+    
+    maxAllowedExposure = 1000000
+    
     cv2.namedWindow("Settings", cv2.WINDOW_NORMAL)
-    cv2.createTrackbar("Exposure", "Settings", int(min_e), int(max_e), lambda x: None)
+    
+    # Since higher values of exposure makes the program laggy, we have limited it to maxAllowedExposure.
+    if (max_e >= maxAllowedExposure): 
+        cv2.createTrackbar("Exposure", "Settings", int(min_e), int(maxAllowedExposure), lambda x: None)
+    else:
+        cv2.createTrackbar("Exposure", "Settings", int(min_e), int(max_e), lambda x: None)
+
     cv2.createTrackbar("Gain", "Settings", int(min_g), int(max_g), lambda x: None)
     
-    cam.MV_CC_SetFloatValue("ExposureTime", float(8000))
-    cam.MV_CC_SetFloatValue("Gain", float(0))
-    cv2.setTrackbarPos("Exposure", "Settings", int(8000))
-    cv2.setTrackbarPos("Gain", "Settings", int(0))
+    cam.MV_CC_SetFloatValue("ExposureTime", float(min_e))
+    cam.MV_CC_SetFloatValue("Gain", float(min_g))
+    cv2.setTrackbarPos("Exposure", "Settings", int(min_e))
+    cv2.setTrackbarPos("Gain", "Settings", int(min_g))
 
 def get_exposure_limits(cam):
     """Function to get the exposure time limits from the camera."""
