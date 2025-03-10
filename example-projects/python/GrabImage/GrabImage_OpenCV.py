@@ -43,7 +43,7 @@ def getOpenCVImage(cam):
         sum += (time.time()-start_time)
         count += 1
     elif (count == 50):
-        print(f"Average color conversion time: {(sum / 50):.5f} seconds")
+        print(f"Average color conversion time: {(sum / 50):.7f} seconds")
         count += 1
         
     
@@ -65,7 +65,7 @@ def create_trackbar(min_e, max_e, min_g, max_g):
         cv2.createTrackbar("Exposure", "Settings", int(min_e), int(maxAllowedExposure), lambda x: None)
     else:
         cv2.createTrackbar("Exposure", "Settings", int(min_e), int(max_e), lambda x: None)
-
+ 
     cv2.createTrackbar("Gain", "Settings", int(min_g), int(max_g), lambda x: None)
     
     cam.MV_CC_SetFloatValue("ExposureTime", float(min_e))
