@@ -1,27 +1,22 @@
 ﻿#include <stdio.h>
-#include <Windows.h>
 #include <process.h>
 #include <conio.h>
-#include <opencv2/opencv.hpp>
+#include "windows.h"
 #include "MvCameraControl.h"
+#include <opencv2/opencv.hpp>
 
 bool g_bExit = false;
 
-// Wait for key press
 void WaitForKeyPress(void)
 {
-	while (true)
+	while (!_kbhit())
 	{
-		int key = cv::waitKey(10);
-		if (key == 27) // 27 is the ASCII code for the "Esc" key
-		{
-			g_bExit = true;
-			break;
-		}
+		Sleep(10);
 	}
+	_getch();
 }
 
-bool PrintDeviceInfo(MV_CC_DEVICE_INFO *pstMVDevInfo)
+bool PrintDeviceInfo(MV_CC_DEVICE_INFO* pstMVDevInfo)
 {
 	if (NULL == pstMVDevInfo)
 	{
@@ -35,7 +30,6 @@ bool PrintDeviceInfo(MV_CC_DEVICE_INFO *pstMVDevInfo)
 		int nIp3 = ((pstMVDevInfo->SpecialInfo.stGigEInfo.nCurrentIp & 0x0000ff00) >> 8);
 		int nIp4 = (pstMVDevInfo->SpecialInfo.stGigEInfo.nCurrentIp & 0x000000ff);
 
-		// Print current IP and user-defined name
 		printf("CurrentIp: %d.%d.%d.%d\n", nIp1, nIp2, nIp3, nIp4);
 		printf("UserDefinedName: %s\n\n", pstMVDevInfo->SpecialInfo.stGigEInfo.chUserDefinedName);
 	}
@@ -71,34 +65,50 @@ bool PrintDeviceInfo(MV_CC_DEVICE_INFO *pstMVDevInfo)
 	}
 	else
 	{
-		printf("Not supported.\n");
+		printf("Not support.\n");
 	}
 
 	return true;
 }
 
-static unsigned int __stdcall WorkThread(void *pUser)
+static unsigned int __stdcall WorkThread(void* pUser)
 {
 	int nRet = MV_OK;
-	MV_FRAME_OUT stOutFrame = { 0 };
-	cv::Mat frame;
+	MV_FRAME_OUT stImageInfo = { 0 };
+	cv::Mat image;
 
-	while (true)
+	while (1)
 	{
-		nRet = MV_CC_GetImageBuffer(pUser, &stOutFrame, 1000);
+		nRet = MV_CC_GetImageBuffer(pUser, &stImageInfo, 1000);
 		if (nRet == MV_OK)
 		{
-			// Convert the buffer into a cv::Mat and reshape it to image dimensions
-			frame = cv::Mat(stOutFrame.stFrameInfo.nHeight, stOutFrame.stFrameInfo.nWidth, CV_8UC1, stOutFrame.pBufAddr);
+			printf("Get Image Buffer: Width[%d], Height[%d], FrameNum[%d]\n",
+				stImageInfo.stFrameInfo.nWidth, stImageInfo.stFrameInfo.nHeight, stImageInfo.stFrameInfo.nFrameNum);
 
-			// Convert the image from BayerRG to RGB
-			cv::cvtColor(frame, frame, cv::COLOR_BayerRG2RGB);
+			// Convert the image buffer to an OpenCV Mat
+			if (stImageInfo.stFrameInfo.enPixelType == PixelType_Gvsp_BayerRG8)
+			{
+				cv::Mat rawImage(stImageInfo.stFrameInfo.nHeight, stImageInfo.stFrameInfo.nWidth, CV_8UC1, stImageInfo.pBufAddr);
+				cv::cvtColor(rawImage, image, cv::COLOR_BayerBG2BGR);
+			}
+			else if (stImageInfo.stFrameInfo.enPixelType == PixelType_Gvsp_Mono8)
+			{
+				// Handle monochrome images
+				image = cv::Mat(stImageInfo.stFrameInfo.nHeight, stImageInfo.stFrameInfo.nWidth, CV_8UC1, stImageInfo.pBufAddr);
+				cv::cvtColor(image, image, cv::COLOR_GRAY2BGR);
+			}
+			else
+			{
+				printf("Unsupported pixel format: %d\n", stImageInfo.stFrameInfo.enPixelType);
+				nRet = MV_CC_FreeImageBuffer(pUser, &stImageInfo);
+				continue;
+			}
 
-			// Display the captured frame
-			cv::imshow("Captured Image", frame);
+			// Display the image using OpenCV
+			cv::imshow("Display", image);
 			cv::waitKey(1);
 
-			nRet = MV_CC_FreeImageBuffer(pUser, &stOutFrame);
+			nRet = MV_CC_FreeImageBuffer(pUser, &stImageInfo);
 			if (nRet != MV_OK)
 			{
 				printf("Free Image Buffer fail! nRet [0x%x]\n", nRet);
@@ -120,11 +130,10 @@ static unsigned int __stdcall WorkThread(void *pUser)
 int main()
 {
 	int nRet = MV_OK;
-	void *handle = NULL;
+	void* handle = NULL;
 
 	do
 	{
-		// Initialize SDK
 		nRet = MV_CC_Initialize();
 		if (MV_OK != nRet)
 		{
@@ -132,9 +141,7 @@ int main()
 			break;
 		}
 
-		// Enum device
-		MV_CC_DEVICE_INFO_LIST stDeviceList;
-		memset(&stDeviceList, 0, sizeof(MV_CC_DEVICE_INFO_LIST));
+		MV_CC_DEVICE_INFO_LIST stDeviceList = { 0 };
 		nRet = MV_CC_EnumDevices(MV_GIGE_DEVICE | MV_USB_DEVICE | MV_GENTL_CAMERALINK_DEVICE | MV_GENTL_CXP_DEVICE | MV_GENTL_XOF_DEVICE, &stDeviceList);
 		if (MV_OK != nRet)
 		{
@@ -147,7 +154,7 @@ int main()
 			for (unsigned int i = 0; i < stDeviceList.nDeviceNum; i++)
 			{
 				printf("[device %d]:\n", i);
-				MV_CC_DEVICE_INFO *pDeviceInfo = stDeviceList.pDeviceInfo[i];
+				MV_CC_DEVICE_INFO* pDeviceInfo = stDeviceList.pDeviceInfo[i];
 				if (NULL == pDeviceInfo)
 				{
 					break;
@@ -171,7 +178,6 @@ int main()
 			break;
 		}
 
-		// Select device and create handle
 		nRet = MV_CC_CreateHandle(&handle, stDeviceList.pDeviceInfo[nIndex]);
 		if (MV_OK != nRet)
 		{
@@ -179,7 +185,6 @@ int main()
 			break;
 		}
 
-		// Open device
 		nRet = MV_CC_OpenDevice(handle);
 		if (MV_OK != nRet)
 		{
@@ -187,7 +192,6 @@ int main()
 			break;
 		}
 
-		// Detection network optimal package size (It only works for the GigE camera)
 		if (stDeviceList.pDeviceInfo[nIndex]->nTLayerType == MV_GIGE_DEVICE)
 		{
 			int nPacketSize = MV_CC_GetOptimalPacketSize(handle);
@@ -205,7 +209,6 @@ int main()
 			}
 		}
 
-		// Set trigger mode as off
 		nRet = MV_CC_SetEnumValue(handle, "TriggerMode", 0);
 		if (MV_OK != nRet)
 		{
@@ -213,7 +216,13 @@ int main()
 			break;
 		}
 
-		// Start grab image
+		unsigned int nThreadID = 0;
+		void* hThreadHandle = (void*)_beginthreadex(NULL, 0, WorkThread, handle, 0, &nThreadID);
+		if (NULL == hThreadHandle)
+		{
+			break;
+		}
+
 		nRet = MV_CC_StartGrabbing(handle);
 		if (MV_OK != nRet)
 		{
@@ -221,19 +230,13 @@ int main()
 			break;
 		}
 
-		unsigned int nThreadID = 0;
-		void *hThreadHandle = (void *)_beginthreadex(NULL, 0, WorkThread, handle, 0, &nThreadID);
-		if (NULL == hThreadHandle)
-		{
-			break;
-		}
-
-		printf("Press 'Esc' key to stop grabbing.\n");
+		printf("Press a key to stop grabbing.\n");
 		WaitForKeyPress();
 
 		g_bExit = true;
+		WaitForSingleObject(hThreadHandle, INFINITE);
+		CloseHandle(hThreadHandle);
 
-		// Stop grab image
 		nRet = MV_CC_StopGrabbing(handle);
 		if (MV_OK != nRet)
 		{
@@ -241,28 +244,32 @@ int main()
 			break;
 		}
 
-		// Close device
 		nRet = MV_CC_CloseDevice(handle);
 		if (MV_OK != nRet)
 		{
-			printf("Close Device fail! nRet [0x%x]\n", nRet);
+			printf("ClosDevice fail! nRet [0x%x]\n", nRet);
 			break;
 		}
 
-		// Destroy handle
 		nRet = MV_CC_DestroyHandle(handle);
 		if (MV_OK != nRet)
 		{
 			printf("Destroy Handle fail! nRet [0x%x]\n", nRet);
+			break;
 		}
+		handle = NULL;
 	} while (0);
 
-	// Uninitialize SDK
-	nRet = MV_CC_Finalize();
-	if (MV_OK != nRet)
+	if (handle != NULL)
 	{
-		printf("Finalize SDK fail! nRet [0x%x]\n", nRet);
+		MV_CC_DestroyHandle(handle);
+		handle = NULL;
 	}
+
+	MV_CC_Finalize();
+
+	printf("Press a key to exit.\n");
+	WaitForKeyPress();
 
 	return 0;
 }
