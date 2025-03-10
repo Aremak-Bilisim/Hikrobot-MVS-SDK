@@ -46,7 +46,8 @@ def get_frame(cam):
 def work_thread(cam=0, pData=0, nDataSize=0):
     """Thread function to capture and display images continuously."""
     global scale
-    while True:
+    global g_bExit
+    while not g_bExit:
         # Capture a frame from the camera
         frame = get_frame(cam)
         if frame is not None:
@@ -57,10 +58,9 @@ def work_thread(cam=0, pData=0, nDataSize=0):
 
             # Display the captured frame
             cv2.imshow("Captured Image", img)
-            cv2.waitKey(1)
-
-        if g_bExit:  # Exit the loop if the global flag is set
-            break
+            if cv2.waitKey(1) == 27:
+                g_bExit = True  # Set the global flag to exit the loop
+                break
 
 def set_camera_settings(cam):
     """Function to set the default camera settings."""
@@ -81,7 +81,7 @@ if __name__ == "__main__":
     tlayerType = (MV_GIGE_DEVICE | MV_USB_DEVICE | MV_GENTL_CAMERALINK_DEVICE
                   | MV_GENTL_CXP_DEVICE | MV_GENTL_XOF_DEVICE)
 
-    scale = int(input("Enter a scale for window and press enter:"))  # Scale factor for image resizing
+    scale = int(input("Enter a scale for window and press enter: "))  # Scale factor for image resizing
 
     # Enumerate all connected devices
     ret = MvCamera.MV_CC_EnumDevices(tlayerType, deviceList)
@@ -130,7 +130,7 @@ if __name__ == "__main__":
         # Similar checks for other device types...
 
     # Get the user's choice for which device to connect
-    nConnectionNum = input("please input the number of the device to connect:")
+    nConnectionNum = input("please input the number of the device to connect: ")
 
     if int(nConnectionNum) >= deviceList.nDeviceNum:
         print("input error!")
@@ -191,10 +191,12 @@ if __name__ == "__main__":
         print("error: unable to start thread")
 
     # Wait for a key press to stop the image capture
-    print("press a key to stop grabbing.")
-    msvcrt.getch()
+    print("press the Escape key to stop grabbing.")
+    while not g_bExit:
+        if msvcrt.kbhit():
+            if ord(msvcrt.getch()) == 27:  # Escape key
+                g_bExit = True
 
-    g_bExit = True  # Set flag to exit the capture loop
     hThreadHandle.join()  # Wait for the thread to finish
 
     # Stop grabbing images
