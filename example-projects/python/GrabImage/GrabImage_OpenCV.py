@@ -47,6 +47,11 @@ def work_thread(cam=0, pData=0, nDataSize=0):
     """Thread function to capture and display images continuously."""
     global scale
     global g_bExit
+    
+    cv2.namedWindow("Captured Image")
+    cv2.createTrackbar("Exposure Time", "Captured Image", int(8000), int(exposure_max), on_trackbar_exposure)
+    cv2.createTrackbar("Gain", "Captured Image", int(0), int(gain_max), on_trackbar_gain)
+
     while not g_bExit:
         # Capture a frame from the camera
         frame = get_frame(cam)
@@ -62,6 +67,7 @@ def work_thread(cam=0, pData=0, nDataSize=0):
                 g_bExit = True  # Set the global flag to exit the loop
                 break
 
+
 def set_camera_settings(cam):
     """Function to set the default camera settings."""
     # Set Gain and Exposure to manual mode
@@ -71,6 +77,44 @@ def set_camera_settings(cam):
     # Set specific values for Gain and Exposure time
     cam.MV_CC_SetFloatValue("Gain", 0.0)
     cam.MV_CC_SetFloatValue("ExposureTime", 8000.0)  # Set exposure to 8000 microseconds
+
+
+def get_exposure_limits(cam):
+    """Function to get the exposure time limits from the camera."""
+    stParam = MVCC_FLOATVALUE()
+    memset(byref(stParam), 0, sizeof(MVCC_FLOATVALUE))
+    ret = cam.MV_CC_GetFloatValue("ExposureTime", stParam)
+    if ret != 0:
+        print(f"Get Exposure Time fail! ret[0x{ret:x}]")
+        return None
+    return stParam.fMin, stParam.fMax
+
+def get_gain_limits(cam):
+    """Function to get the gain limits from the camera."""
+    stParam = MVCC_FLOATVALUE()
+    memset(byref(stParam), 0, sizeof(MVCC_FLOATVALUE))
+    ret = cam.MV_CC_GetFloatValue("Gain", stParam)
+    if ret != 0:
+        print(f"Get Gain fail! ret[0x{ret:x}]")
+        return None
+    return stParam.fMin, stParam.fMax
+
+def on_trackbar_exposure(val):
+    """Callback function for exposure trackbar."""
+    try:
+        cam.MV_CC_SetFloatValue("ExposureTime", float(val))
+        print(f"Exposure Time set to: {val}")
+    except Exception as e:
+        print(f"Error setting Exposure Time: {e}")
+
+def on_trackbar_gain(val):
+    """Callback function for gain trackbar."""
+    try:
+        cam.MV_CC_SetFloatValue("Gain", float(val))
+        print(f"Gain set to: {val}")
+    except Exception as e:
+        print(f"Error setting Gain: {e}")
+
 
 if __name__ == "__main__":
     """Main function to initialize the camera and start capturing images."""
@@ -177,11 +221,20 @@ if __name__ == "__main__":
         print("set trigger mode fail! ret[0x%x]" % ret)
         sys.exit()
 
+
+    exposure_min, exposure_max = get_exposure_limits(cam)
+    print(f"Exposure time limits: {exposure_min} to {exposure_max} microseconds")
+
+    gain_min, gain_max = get_gain_limits(cam)
+    print(f"Gain limits: {gain_min} to {gain_max}")
+
     # Start grabbing images
     ret = cam.MV_CC_StartGrabbing()
     if ret != 0:
         print("start grabbing fail! ret[0x%x]" % ret)
         sys.exit()
+
+    
 
     try:
         # Start a new thread to handle image capture
