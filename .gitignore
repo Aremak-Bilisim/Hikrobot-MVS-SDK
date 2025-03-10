@@ -7,3 +7,6 @@ example-projects/cpp/GrabImage_OpenCV/x64/Debug/opencv_world4110d.dll
 
 *.opensdf
 /example-projects/cpp/GrabImage_OpenCV/x64
+/example-projects/cpp/GrabImage_OpenCV/Win32
+/example-projects/cpp/GrabImage_OpenCV/.vs
+
