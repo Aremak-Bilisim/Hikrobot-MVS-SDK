@@ -2,6 +2,7 @@
 #include <process.h>
 #include <conio.h>
 #include "windows.h"
+#include <chrono>
 #include "MvCameraControl.h"
 #include <opencv2/opencv.hpp>
 
@@ -10,6 +11,9 @@ int minExposure = 0;
 int minGain = 0;
 int maxExposure = 80000;
 int maxGain = 50;
+int maxAllowedExposure = 1000000;
+int count = 0;
+double sum = 0.0;
 
 
 void WaitForKeyPress(void)
@@ -89,7 +93,7 @@ static unsigned int __stdcall WorkThread(void* pUser)
 
 	// Create trackbars for exposure and gain
 	cv::createTrackbar("Exposure", "Camera Controls", &minExposure,
-		static_cast<int>(80000), nullptr);
+		static_cast<int>(maxExposure), nullptr);
 	cv::createTrackbar("Gain", "Camera Controls", &minGain,
 		static_cast<int>(maxGain), nullptr);
 
@@ -101,8 +105,8 @@ static unsigned int __stdcall WorkThread(void* pUser)
 		nRet = MV_CC_GetImageBuffer(pUser, &stImageInfo, 1000);
 		if (nRet == MV_OK)
 		{
-			printf("Get Image Buffer: Width[%d], Height[%d], FrameNum[%d]\n",
-				stImageInfo.stFrameInfo.nWidth, stImageInfo.stFrameInfo.nHeight, stImageInfo.stFrameInfo.nFrameNum);
+			auto startTime = std::chrono::high_resolution_clock::now();
+			stImageInfo.stFrameInfo.nWidth, stImageInfo.stFrameInfo.nHeight;
 
 			// Convert the image buffer to an OpenCV Mat
 			if (stImageInfo.stFrameInfo.enPixelType == PixelType_Gvsp_BayerRG8)
@@ -122,6 +126,17 @@ static unsigned int __stdcall WorkThread(void* pUser)
 				nRet = MV_CC_FreeImageBuffer(pUser, &stImageInfo);
 				continue;
 			}
+			auto endTime = std::chrono::high_resolution_clock::now();
+
+			std::chrono::duration<double> elapsed = endTime - startTime;
+			count++;
+
+			if (count < 50)
+				sum += elapsed.count();
+			else if (count == 50)
+				std::cout << "Elapsed time: " << sum / 50 << " seconds" << std::endl;
+
+
 
 			// Display the image using OpenCV
 			cv::imshow("Display", image);
@@ -147,24 +162,8 @@ static unsigned int __stdcall WorkThread(void* pUser)
 		int currentGain = cv::getTrackbarPos("Gain", "Camera Controls");
 
 		nRet = MV_CC_SetFloatValue(pUser, "ExposureTime", static_cast<float>(currentExposure));
-		if (MV_OK != nRet)
-		{
-			printf("Set Exposure Time fail! nRet [0x%x]\n", nRet);
-		}
-		else
-		{
-			printf("Exposure set to: %d\n", currentExposure);
-		}
-
 		nRet = MV_CC_SetFloatValue(pUser, "Gain", static_cast<float>(currentGain));
-		if (MV_OK != nRet)
-		{
-			printf("Set Gain fail! nRet [0x%x]\n", nRet);
-		}
-		else
-		{
-			printf("Gain set to: %d\n", currentGain);
-		}
+		
 		
 	}
 
@@ -211,7 +210,6 @@ int main()
 {
 	int nRet = MV_OK;
 	void* handle = NULL;
-
 	do
 	{
 		nRet = MV_CC_Initialize();
@@ -305,13 +303,13 @@ int main()
 		}
 
 		
+		
 		GetExposureLimits(handle, minExposure, maxExposure);
 		GetGainLimits(handle, minGain, maxGain);
 
-		std::cout << "mın exp" << minExposure << std::endl;
-		std::cout << "max exp" << maxExposure << std::endl;
-		std::cout << "mın gaın" << minGain << std::endl;
-		std::cout << "max gaın" << maxGain << std::endl;
+		if (maxExposure >= maxAllowedExposure) maxExposure = maxAllowedExposure;
+
+
 
 
 		
