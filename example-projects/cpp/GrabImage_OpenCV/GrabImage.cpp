@@ -6,6 +6,11 @@
 #include <opencv2/opencv.hpp>
 
 bool g_bExit = false;
+int minExposure = 0;
+int minGain = 0;
+int maxExposure = 80000;
+int maxGain = 50;
+
 
 void WaitForKeyPress(void)
 {
@@ -71,11 +76,25 @@ bool PrintDeviceInfo(MV_CC_DEVICE_INFO* pstMVDevInfo)
 	return true;
 }
 
+
+
 static unsigned int __stdcall WorkThread(void* pUser)
 {
 	int nRet = MV_OK;
 	MV_FRAME_OUT stImageInfo = { 0 };
 	cv::Mat image;
+
+	// Create a window for the trackbars
+	cv::namedWindow("Camera Controls", cv::WINDOW_NORMAL);
+
+	// Create trackbars for exposure and gain
+	cv::createTrackbar("Exposure", "Camera Controls", &minExposure,
+		static_cast<int>(80000), nullptr);
+	cv::createTrackbar("Gain", "Camera Controls", &minGain,
+		static_cast<int>(maxGain), nullptr);
+
+
+
 
 	while (1)
 	{
@@ -122,9 +141,70 @@ static unsigned int __stdcall WorkThread(void* pUser)
 		{
 			break;
 		}
+
+		// Check if trackbar values have changed
+		int currentExposure = cv::getTrackbarPos("Exposure", "Camera Controls");
+		int currentGain = cv::getTrackbarPos("Gain", "Camera Controls");
+
+		nRet = MV_CC_SetFloatValue(pUser, "ExposureTime", static_cast<float>(currentExposure));
+		if (MV_OK != nRet)
+		{
+			printf("Set Exposure Time fail! nRet [0x%x]\n", nRet);
+		}
+		else
+		{
+			printf("Exposure set to: %d\n", currentExposure);
+		}
+
+		nRet = MV_CC_SetFloatValue(pUser, "Gain", static_cast<float>(currentGain));
+		if (MV_OK != nRet)
+		{
+			printf("Set Gain fail! nRet [0x%x]\n", nRet);
+		}
+		else
+		{
+			printf("Gain set to: %d\n", currentGain);
+		}
+		
 	}
 
 	return 0;
+}
+
+
+
+void GetExposureLimits(void* handle, int& minExposure, int& maxExposure)
+{
+	MVCC_FLOATVALUE stParam = { 0 };
+	int nRet = MV_CC_GetFloatValue(handle, "ExposureTime", &stParam);
+	if (MV_OK != nRet)
+	{
+		printf("Get Exposure Time fail! nRet [0x%x]\n", nRet);
+		minExposure = 0.0f;
+		maxExposure = 0.0f;
+	}
+	else
+	{
+		minExposure = stParam.fMin;
+		maxExposure = stParam.fMax;
+	}
+}
+
+void GetGainLimits(void* handle, int& minGain, int& maxGain)
+{
+	MVCC_FLOATVALUE stParam = { 0 };
+	int nRet = MV_CC_GetFloatValue(handle, "Gain", &stParam);
+	if (MV_OK != nRet)
+	{
+		printf("Get Gain fail! nRet [0x%x]\n", nRet);
+		minGain = 0.0f;
+		maxGain = 0.0f;
+	}
+	else
+	{
+		minGain = stParam.fMin;
+		maxGain = stParam.fMax;
+	}
 }
 
 int main()
@@ -216,6 +296,7 @@ int main()
 			break;
 		}
 
+		
 		unsigned int nThreadID = 0;
 		void* hThreadHandle = (void*)_beginthreadex(NULL, 0, WorkThread, handle, 0, &nThreadID);
 		if (NULL == hThreadHandle)
@@ -223,12 +304,25 @@ int main()
 			break;
 		}
 
+		
+		GetExposureLimits(handle, minExposure, maxExposure);
+		GetGainLimits(handle, minGain, maxGain);
+
+		std::cout << "mın exp" << minExposure << std::endl;
+		std::cout << "max exp" << maxExposure << std::endl;
+		std::cout << "mın gaın" << minGain << std::endl;
+		std::cout << "max gaın" << maxGain << std::endl;
+
+
+		
+
 		nRet = MV_CC_StartGrabbing(handle);
 		if (MV_OK != nRet)
 		{
 			printf("Start Grabbing fail! nRet [0x%x]\n", nRet);
 			break;
 		}
+
 
 		printf("Press a key to stop grabbing.\n");
 		WaitForKeyPress();
