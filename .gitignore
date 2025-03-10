@@ -4,3 +4,6 @@ example-projects/cpp/GrabImage_OpenCV/x64/Debug/opencv_world4110d.dll
 
 *.pyc
 /.vscode
+
+*.opensdf
+/example-projects/cpp/GrabImage_OpenCV/x64
