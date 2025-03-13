@@ -179,7 +179,7 @@ namespace GrabImage
                 }
 
                 Int32 nDevIndex = 0;
-                Console.Write("Please input index(0-{0:d}):", stDevList.nDeviceNum - 1);
+                Console.Write("Please input index(0-{0:d}): ", stDevList.nDeviceNum - 1);
                 try
                 {
                     nDevIndex = Convert.ToInt32(Console.ReadLine());
