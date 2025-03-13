@@ -77,10 +77,10 @@ namespace GrabImage
                             TimeSpan elapsedTime = stopwatch.Elapsed;
                             count++;
 
-                            if (count < 50)
+                            if (count < 1000)
                                 sum += elapsedTime.TotalSeconds;
-                            else if (count == 50)
-                                Console.WriteLine("Average color convertion time: " + sum / 50 + " seconds");
+                            else if (count == 1000)
+                                Console.WriteLine("Average color convertion time: " + sum / 1000 + " seconds");
 
                             
 
