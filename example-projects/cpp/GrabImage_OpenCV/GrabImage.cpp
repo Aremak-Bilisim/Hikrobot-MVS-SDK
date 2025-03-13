@@ -87,6 +87,8 @@ static unsigned int __stdcall WorkThread(void* pUser)
 
 	// Create a window for the trackbars
 	cv::namedWindow("Camera Controls", cv::WINDOW_NORMAL);
+	cv::namedWindow("Display", cv::WINDOW_NORMAL);
+	
 
 	// Create trackbars for exposure and gain
 	cv::createTrackbar("Exposure", "Camera Controls", &minExposure,
@@ -97,8 +99,6 @@ static unsigned int __stdcall WorkThread(void* pUser)
 	while (1)
 	{
 		nRet = MV_CC_GetImageBuffer(pUser, &stImageInfo, 1000);
-
-		
 
 		if (nRet == MV_OK)
 		{
@@ -123,12 +123,14 @@ static unsigned int __stdcall WorkThread(void* pUser)
 				continue;
 			}
 
-			// Calculate the scaling factor
+			// Calculate the scaling factor to fit the image within the window
 			int width = stImageInfo.stFrameInfo.nWidth;
 			int height = stImageInfo.stFrameInfo.nHeight;
-			double scale_factor = std::min(1920.0 / width, 1080.0 / height);
+			double scale_factor_width = 1920.0 / width;
+			double scale_factor_height = 1080.0 / height;
+			double scale_factor = std::min(scale_factor_width, scale_factor_height);
 
-			// Optionally, you can resize the image using the scale factor
+			// Resize the image using the scale factor
 			cv::Mat resizedImage;
 			cv::resize(image, resizedImage, cv::Size(), scale_factor, scale_factor, cv::INTER_LINEAR);
 
@@ -143,7 +145,7 @@ static unsigned int __stdcall WorkThread(void* pUser)
 				std::cout << "Average color conversion time: " << sum / 1000 << " seconds" << std::endl;
 
 			// Display the image using OpenCV
-			cv::imshow("Display", image);
+			cv::imshow("Display", resizedImage);
 			cv::waitKey(1);
 
 			nRet = MV_CC_FreeImageBuffer(pUser, &stImageInfo);
