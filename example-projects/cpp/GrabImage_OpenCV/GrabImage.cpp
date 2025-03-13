@@ -6,6 +6,7 @@
 #include "MvCameraControl.h"
 #include <opencv2/opencv.hpp>
 
+
 bool g_bExit = false;
 int minExposure = 0;
 int minGain = 0;
@@ -80,8 +81,6 @@ bool PrintDeviceInfo(MV_CC_DEVICE_INFO* pstMVDevInfo)
 	return true;
 }
 
-
-
 static unsigned int __stdcall WorkThread(void* pUser)
 {
 	int nRet = MV_OK;
@@ -106,7 +105,6 @@ static unsigned int __stdcall WorkThread(void* pUser)
 		if (nRet == MV_OK)
 		{
 			auto startTime = std::chrono::high_resolution_clock::now();
-			stImageInfo.stFrameInfo.nWidth, stImageInfo.stFrameInfo.nHeight;
 
 			// Convert the image buffer to an OpenCV Mat
 			if (stImageInfo.stFrameInfo.enPixelType == PixelType_Gvsp_BayerRG8)
@@ -131,10 +129,10 @@ static unsigned int __stdcall WorkThread(void* pUser)
 			std::chrono::duration<double> elapsed = endTime - startTime;
 			count++;
 
-			if (count < 50)
+			if (count < 1000)
 				sum += elapsed.count();
-			else if (count == 50)
-				std::cout << "Elapsed time: " << sum / 50 << " seconds" << std::endl;
+			else if (count == 1000)
+				std::cout << "Average color conversion time: " << sum / 1000 << " seconds" << std::endl;
 
 
 
@@ -169,8 +167,6 @@ static unsigned int __stdcall WorkThread(void* pUser)
 
 	return 0;
 }
-
-
 
 void GetExposureLimits(void* handle, int& minExposure, int& maxExposure)
 {
@@ -246,7 +242,7 @@ int main()
 			break;
 		}
 
-		printf("Please Input camera index(0-%d):", stDeviceList.nDeviceNum - 1);
+		printf("Please Input camera index(0-%d): ", stDeviceList.nDeviceNum - 1);
 		unsigned int nIndex = 0;
 		scanf_s("%d", &nIndex);
 

@@ -39,11 +39,11 @@ def getOpenCVImage(cam):
     cv_image = cv2.cvtColor(np_image, cv2.COLOR_BayerRG2RGB)
     
     
-    if (count < 50):
+    if (count < 1000):
         sum += (time.time()-start_time)
         count += 1
-    elif (count == 50):
-        print(f"Average color conversion time: {(sum / 50):.7f} seconds")
+    elif (count == 1000):
+        print(f"Average color conversion time: {(sum / 1000):.7f} seconds")
         count += 1
         
     

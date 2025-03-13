@@ -1,11 +1,23 @@
-﻿Build started 07/03/2025 2:33:10 pm.
-     1>Project "C:\Users\Syed\Desktop\Aremak\Hikrobot-MVS-SDK\example-projects\cpp\samples\GrabImage_VS2013.vcxproj" on node 2 (Build target(s)).
+﻿Build started 13/03/2025 11:04:51 am.
+     1>Project "C:\Users\Syed\Desktop\Aremak\Hikrobot-MVS-SDK\example-projects\cpp\GrabImage_OpenCV\GrabImage_VS2013.vcxproj" on node 2 (Build target(s)).
      1>ClCompile:
-         C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\bin\x86_amd64\CL.exe /c /I"C:\Program Files (x86)\MVS\Development\Includes" /Zi /nologo /W3 /WX- /O2 /GL /D WIN32 /D NDEBUG /D _CONSOLE /D _MBCS /Gm- /EHsc /MD /GS /Gy- /fp:precise /Zc:wchar_t /Zc:forScope /Zc:inline /Fo"x64\Release\\" /Fd"x64\Release\vc140.pdb" /Gd /TP /errorReport:prompt GrabImage.cpp
+         C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\bin\x86_amd64\CL.exe /c /I"C:\Program Files (x86)\MVS\Development\Includes" /IC:\Users\Syed\Desktop\opencv\build\include /Zi /nologo /W3 /WX- /O2 /GL /D WIN32 /D NDEBUG /D _CONSOLE /D _MBCS /Gm- /EHsc /MD /GS /Gy- /fp:precise /Zc:wchar_t /Zc:forScope /Zc:inline /Fo"x64\Release\\" /Fd"x64\Release\vc140.pdb" /Gd /TP /errorReport:prompt GrabImage.cpp
          GrabImage.cpp
-     1>GrabImage.cpp(543): fatal error C1083: Cannot open include file: 'opencv2/opencv.hpp': No such file or directory
-     1>Done Building Project "C:\Users\Syed\Desktop\Aremak\Hikrobot-MVS-SDK\example-projects\cpp\samples\GrabImage_VS2013.vcxproj" (Build target(s)) -- FAILED.
+     1>GrabImage.cpp(178): warning C4244: '=': conversion from 'float' to 'int', possible loss of data
+     1>GrabImage.cpp(179): warning C4244: '=': conversion from 'float' to 'int', possible loss of data
+     1>GrabImage.cpp(183): warning C4244: '=': conversion from 'float' to 'int', possible loss of data
+     1>GrabImage.cpp(184): warning C4244: '=': conversion from 'float' to 'int', possible loss of data
+     1>GrabImage.cpp(195): warning C4244: '=': conversion from 'float' to 'int', possible loss of data
+     1>GrabImage.cpp(196): warning C4244: '=': conversion from 'float' to 'int', possible loss of data
+     1>GrabImage.cpp(200): warning C4244: '=': conversion from 'float' to 'int', possible loss of data
+     1>GrabImage.cpp(201): warning C4244: '=': conversion from 'float' to 'int', possible loss of data
+       Link:
+         C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\bin\x86_amd64\link.exe /ERRORREPORT:PROMPT /OUT:"C:\Users\Syed\Desktop\Aremak\Hikrobot-MVS-SDK\example-projects\cpp\GrabImage_OpenCV\x64\Release\GrabImage.exe" /INCREMENTAL:NO /NOLOGO /LIBPATH:"C:\Program Files (x86)\MVS\Development\Libraries\win64" /LIBPATH:C:\Users\Syed\Desktop\opencv\build\x64\vc16\lib MvCameraControl.lib opencv_world4110.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /Debug /PDB:"C:\Users\Syed\Desktop\Aremak\Hikrobot-MVS-SDK\example-projects\cpp\GrabImage_OpenCV\x64\Release\GrabImage.pdb" /SUBSYSTEM:CONSOLE /OPT:REF /OPT:ICF /LTCG:incremental /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"C:\Users\Syed\Desktop\Aremak\Hikrobot-MVS-SDK\example-projects\cpp\GrabImage_OpenCV\x64\Release\GrabImage.lib" /MACHINE:X64 x64\Release\GrabImage.obj
+         Generating code
+         Finished generating code
+         GrabImage_VS2013.vcxproj -> C:\Users\Syed\Desktop\Aremak\Hikrobot-MVS-SDK\example-projects\cpp\GrabImage_OpenCV\x64\Release\GrabImage.exe
+     1>Done Building Project "C:\Users\Syed\Desktop\Aremak\Hikrobot-MVS-SDK\example-projects\cpp\GrabImage_OpenCV\GrabImage_VS2013.vcxproj" (Build target(s)).
 
-Build FAILED.
+Build succeeded.
 
-Time Elapsed 00:00:00.23
+Time Elapsed 00:00:03.70
