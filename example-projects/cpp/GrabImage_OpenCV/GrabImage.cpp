@@ -6,7 +6,6 @@
 #include "MvCameraControl.h"
 #include <opencv2/opencv.hpp>
 
-
 bool g_bExit = false;
 int minExposure = 0;
 int minGain = 0;
@@ -15,7 +14,6 @@ int maxGain = 50;
 int maxAllowedExposure = 1000000;
 int count = 0;
 double sum = 0.0;
-
 
 void WaitForKeyPress(void)
 {
@@ -96,9 +94,6 @@ static unsigned int __stdcall WorkThread(void* pUser)
 	cv::createTrackbar("Gain", "Camera Controls", &minGain,
 		static_cast<int>(maxGain), nullptr);
 
-
-
-
 	while (1)
 	{
 		nRet = MV_CC_GetImageBuffer(pUser, &stImageInfo, 1000);
@@ -134,8 +129,6 @@ static unsigned int __stdcall WorkThread(void* pUser)
 			else if (count == 1000)
 				std::cout << "Average color conversion time: " << sum / 1000 << " seconds" << std::endl;
 
-
-
 			// Display the image using OpenCV
 			cv::imshow("Display", image);
 			cv::waitKey(1);
@@ -161,8 +154,6 @@ static unsigned int __stdcall WorkThread(void* pUser)
 
 		nRet = MV_CC_SetFloatValue(pUser, "ExposureTime", static_cast<float>(currentExposure));
 		nRet = MV_CC_SetFloatValue(pUser, "Gain", static_cast<float>(currentGain));
-		
-		
 	}
 
 	return 0;
@@ -175,13 +166,13 @@ void GetExposureLimits(void* handle, int& minExposure, int& maxExposure)
 	if (MV_OK != nRet)
 	{
 		printf("Get Exposure Time fail! nRet [0x%x]\n", nRet);
-		minExposure = 0.0f;
-		maxExposure = 0.0f;
+		minExposure = 0;
+		maxExposure = 0;
 	}
 	else
 	{
-		minExposure = stParam.fMin;
-		maxExposure = stParam.fMax;
+		minExposure = static_cast<int>(stParam.fMin);
+		maxExposure = static_cast<int>(stParam.fMax);
 	}
 }
 
@@ -192,13 +183,13 @@ void GetGainLimits(void* handle, int& minGain, int& maxGain)
 	if (MV_OK != nRet)
 	{
 		printf("Get Gain fail! nRet [0x%x]\n", nRet);
-		minGain = 0.0f;
-		maxGain = 0.0f;
+		minGain = 0;
+		maxGain = 0;
 	}
 	else
 	{
-		minGain = stParam.fMin;
-		maxGain = stParam.fMax;
+		minGain = static_cast<int>(stParam.fMin);
+		maxGain = static_cast<int>(stParam.fMax);
 	}
 }
 
@@ -290,7 +281,6 @@ int main()
 			break;
 		}
 
-		
 		unsigned int nThreadID = 0;
 		void* hThreadHandle = (void*)_beginthreadex(NULL, 0, WorkThread, handle, 0, &nThreadID);
 		if (NULL == hThreadHandle)
@@ -298,17 +288,10 @@ int main()
 			break;
 		}
 
-		
-		
 		GetExposureLimits(handle, minExposure, maxExposure);
 		GetGainLimits(handle, minGain, maxGain);
 
 		if (maxExposure >= maxAllowedExposure) maxExposure = maxAllowedExposure;
-
-
-
-
-		
 
 		nRet = MV_CC_StartGrabbing(handle);
 		if (MV_OK != nRet)
@@ -316,7 +299,6 @@ int main()
 			printf("Start Grabbing fail! nRet [0x%x]\n", nRet);
 			break;
 		}
-
 
 		printf("Press a key to stop grabbing.\n");
 		WaitForKeyPress();
