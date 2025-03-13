@@ -97,6 +97,9 @@ static unsigned int __stdcall WorkThread(void* pUser)
 	while (1)
 	{
 		nRet = MV_CC_GetImageBuffer(pUser, &stImageInfo, 1000);
+
+		
+
 		if (nRet == MV_OK)
 		{
 			auto startTime = std::chrono::high_resolution_clock::now();
@@ -119,6 +122,16 @@ static unsigned int __stdcall WorkThread(void* pUser)
 				nRet = MV_CC_FreeImageBuffer(pUser, &stImageInfo);
 				continue;
 			}
+
+			// Calculate the scaling factor
+			int width = stImageInfo.stFrameInfo.nWidth;
+			int height = stImageInfo.stFrameInfo.nHeight;
+			double scale_factor = std::min(1920.0 / width, 1080.0 / height);
+
+			// Optionally, you can resize the image using the scale factor
+			cv::Mat resizedImage;
+			cv::resize(image, resizedImage, cv::Size(), scale_factor, scale_factor, cv::INTER_LINEAR);
+
 			auto endTime = std::chrono::high_resolution_clock::now();
 
 			std::chrono::duration<double> elapsed = endTime - startTime;
