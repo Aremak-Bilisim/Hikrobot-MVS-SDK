@@ -12,6 +12,10 @@ example-projects/cpp/GrabImage_OpenCV/GrabImage_VS2013.sdf
 
 
 # C# specific
-/example-projects/csharp/GrabImage_OpenCV/GrabImage
-/example-projects/cpp/GrabImage_OpenCV/.vs
+/example-projects/csharp/GrabImage_OpenCV/.vs
+/example-projects/csharp/GrabImage_OpenCV/bin
+/example-projects/csharp/GrabImage_OpenCV/obj
+/example-projects/csharp/GrabImage_OpenCV/GrabImage/bin
+/example-projects/csharp/GrabImage_OpenCV/GrabImage/obj
+/example-projects/csharp/GrabImage_OpenCV/GrabImage/Properties
 /example-projects/cpp/GrabImage_OpenCV/packages
