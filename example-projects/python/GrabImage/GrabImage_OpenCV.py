@@ -7,6 +7,8 @@ import time
 
 # Update pixel format constants with correct values
 MV_PIXEL_FORMAT_MONO8 = 17301505
+MV_PIXEL_FORMAT_MONO10 = 17825795
+MV_PIXEL_FORMAT_MONO12 = 17825797
 MV_PIXEL_FORMAT_BAYER_GR8 = 17301512
 MV_PIXEL_FORMAT_BAYER_RG8 = 17301513
 MV_PIXEL_FORMAT_BAYER_GB8 = 17301514
@@ -15,6 +17,10 @@ MV_PIXEL_FORMAT_RGB8_PACKED = 35127316
 MV_PIXEL_FORMAT_BGR8_PACKED = 35127317
 MV_PIXEL_FORMAT_YUV422_PACKED = 34603039
 MV_PIXEL_FORMAT_YUV422_YUYV = 34603058
+MV_PIXEL_FORMAT_BAYER_RG10 = 17825805
+# MV_PIXEL_FORMAT_BAYER_RG10_PACKED = 17563687
+MV_PIXEL_FORMAT_BAYER_RG12 = 17825809
+# MV_PIXEL_FORMAT_BAYER_RG12_PACKED = 17563691
 
 # Get the absolute path to the MvImport directory
 current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -32,9 +38,103 @@ def set_camera_settings(cam):
     cam.MV_CC_SetFloatValue("ExposureTime", 10000.0)  # Set exposure time
     cam.MV_CC_SetEnumValue("GainAuto", 0)  # Disable auto gain
 
+
+
+
+def convert_pixel_format(numpy_array, pixel_format, width, height):
+    """
+    Convert raw image data to RGB format based on pixel format
+    """
+    # 8-bit formats
+    if pixel_format == MV_PIXEL_FORMAT_MONO8:
+        print("Mono8")
+        img = numpy_array.reshape((height, width))
+        return cv2.cvtColor(img, cv2.COLOR_GRAY2RGB)
+    
+    # 10-bit format
+    elif pixel_format == MV_PIXEL_FORMAT_MONO10:
+        print("Mono10")
+        # Reshape to 2D array of 16-bit values
+        img = numpy_array.view(np.uint16).reshape(height, width)
+        # Scale down from 10-bit to 8-bit
+        img = (img >> 2).astype(np.uint8)
+        return cv2.cvtColor(img, cv2.COLOR_GRAY2RGB)
+    
+    # 12-bit format
+    elif pixel_format == MV_PIXEL_FORMAT_MONO12:
+        print("Mono12")
+        # Reshape to 2D array of 16-bit values
+        img = numpy_array.view(np.uint16).reshape(height, width)
+        # Scale down from 12-bit to 8-bit
+        img = (img >> 4).astype(np.uint8)
+        return cv2.cvtColor(img, cv2.COLOR_GRAY2RGB)
+    
+    # 8-bit Bayer formats
+    elif pixel_format in [MV_PIXEL_FORMAT_BAYER_GR8, MV_PIXEL_FORMAT_BAYER_RG8, 
+                         MV_PIXEL_FORMAT_BAYER_GB8, MV_PIXEL_FORMAT_BAYER_BG8]:
+        print("Bayer8")
+        img = numpy_array.reshape((height, width))
+        conversion_map = {
+            MV_PIXEL_FORMAT_BAYER_GR8: cv2.COLOR_BayerGR2RGB,
+            MV_PIXEL_FORMAT_BAYER_RG8: cv2.COLOR_BayerRG2RGB,
+            MV_PIXEL_FORMAT_BAYER_GB8: cv2.COLOR_BayerGB2RGB,
+            MV_PIXEL_FORMAT_BAYER_BG8: cv2.COLOR_BayerBG2RGB
+        }
+        return cv2.cvtColor(img, conversion_map[pixel_format])
+    
+    # 10-bit Bayer formats
+    elif pixel_format == MV_PIXEL_FORMAT_BAYER_RG10:
+        print("Bayer10")
+        img = numpy_array.view(np.uint16).reshape(height, width)
+        img = (img >> 2).astype(np.uint8)  # Convert 10-bit to 8-bit
+        return cv2.cvtColor(img, cv2.COLOR_BayerRG2RGB)
+    
+    # elif pixel_format == MV_PIXEL_FORMAT_BAYER_RG10_PACKED:
+    #     print("Bayer10P")
+    #     img = numpy_array.view(np.uint8).reshape(height, width)
+    #     img = img.reshape((height, width, 5//4))
+    #     bayer_data = (img[:, :, 0] << 2) | (img[:, :, 1] >> 6)
+    #     return cv2.cvtColor(bayer_data, cv2.COLOR_BayerRG2BGR)
+    
+    # 12-bit Bayer formats
+    elif pixel_format == MV_PIXEL_FORMAT_BAYER_RG12:
+        print("Bayer12")
+        img = numpy_array.view(np.uint16).reshape(height, width)
+        img = (img >> 4).astype(np.uint8)  # Convert 12-bit to 8-bit
+        return cv2.cvtColor(img, cv2.COLOR_BayerRG2RGB)
+    
+    # 12-bit Bayer Packed formats
+    # elif pixel_format == MV_PIXEL_FORMAT_BAYER_RG12_PACKED:
+    #     print("Bayer12")
+    #     img = numpy_array.view(np.uint16).reshape(height, width)
+    #     img = (img >> 4).astype(np.uint8)  # Convert 12-bit to 8-bit
+    #     return cv2.cvtColor(img, cv2.COLOR_BayerRG2RGB)
+    
+    # Packed RGB/BGR formats
+    elif pixel_format == MV_PIXEL_FORMAT_RGB8_PACKED:
+        print("RGB8")
+        return cv2.cvtColor(numpy_array.reshape((height, width, 3)), cv2.COLOR_RGB2BGR)
+    
+    elif pixel_format == MV_PIXEL_FORMAT_BGR8_PACKED:
+        print("BGR8")
+        img = numpy_array.reshape((height, width, 3))
+        return img
+    
+    # YUV formats
+    elif pixel_format in [MV_PIXEL_FORMAT_YUV422_PACKED, MV_PIXEL_FORMAT_YUV422_YUYV]:
+        print("YUV422")
+        # First convert to uint8 and reshape to proper dimensions
+        data = numpy_array.astype(np.uint8)
+        # YUYV format has 2 bytes per pixel, so width needs to be doubled
+        data = data.reshape((height, width, -1))
+        # Convert from YUV to BGR
+        bgr_img = cv2.cvtColor(data, cv2.COLOR_YUV2RGB_UYVY)
+        return bgr_img
+    
+    else:
+        raise ValueError(f"Unsupported pixel format: {pixel_format}")
 def getOpenCVImage(cam):
     global count, sum
-    # Initialize frame buffer
     stOutFrame = MV_FRAME_OUT()
     ctypes.memset(ctypes.byref(stOutFrame), 0, ctypes.sizeof(stOutFrame))
 
@@ -44,76 +144,35 @@ def getOpenCVImage(cam):
         return None
 
     start_time = time.time()
-    
     try:
-        # Convert data to numpy array
         buf_cache = (ctypes.c_ubyte * stOutFrame.stFrameInfo.nFrameLen)()
         ctypes.memmove(ctypes.byref(buf_cache), stOutFrame.pBufAddr, stOutFrame.stFrameInfo.nFrameLen)
         
-
         width = stOutFrame.stFrameInfo.nWidth
         height = stOutFrame.stFrameInfo.nHeight
         pixel_format = stOutFrame.stFrameInfo.enPixelType
 
+        print(f"Pixel format: {pixel_format}")
+
         numpy_array = np.ctypeslib.as_array(buf_cache)
+        
+        # Pixel format conversions
+        cv_image = convert_pixel_format(numpy_array, pixel_format, width, height)
 
-
-        # Convert based on pixel format
-        if pixel_format == MV_PIXEL_FORMAT_MONO8:
-            print("Mono8")
-            img = numpy_array.reshape((height, width))
-            cv_image = cv2.cvtColor(img, cv2.COLOR_GRAY2RGB)
-        elif pixel_format == MV_PIXEL_FORMAT_BAYER_GR8:
-            print("BayerGR8")
-            img = numpy_array.reshape((height, width))
-            cv_image = cv2.cvtColor(img, cv2.COLOR_BayerGR2RGB)
-        elif pixel_format == MV_PIXEL_FORMAT_BAYER_RG8:
-            print("BayerRG8")
-            img = numpy_array.reshape((height, width))
-            cv_image = cv2.cvtColor(img, cv2.COLOR_BayerRG2RGB)
-        elif pixel_format == MV_PIXEL_FORMAT_BAYER_GB8:
-            print("BayerGB8")
-            img = numpy_array.reshape((height, width))
-            cv_image = cv2.cvtColor(img, cv2.COLOR_BayerGB2RGB)
-        elif pixel_format == MV_PIXEL_FORMAT_BAYER_BG8:
-            print("BayerBG8")
-            img = numpy_array.reshape((height, width))
-            cv_image = cv2.cvtColor(img, cv2.COLOR_BayerBG2RGB)
-        elif pixel_format == MV_PIXEL_FORMAT_RGB8_PACKED:
-            print("RGB8Packed")
-            img = numpy_array.reshape((height, width, 3))
-            cv_image = cv2.cvtColor(img, cv2.COLOR_RGB2RGB)
-        elif pixel_format == MV_PIXEL_FORMAT_BGR8_PACKED:
-            print("BGR8Packed")
-            cv_image = numpy_array.reshape((height, width, 3))
-        elif pixel_format == MV_PIXEL_FORMAT_YUV422_PACKED or pixel_format == MV_PIXEL_FORMAT_YUV422_YUYV:
-            print("YUV422Packed")
-            img = numpy_array.reshape((height, width//2, 4))[:,:,:2]
-            img = img.reshape((height, width))
-            cv_image = cv2.cvtColor(img, cv2.COLOR_YUV2RGB_YUYV)
-        else:
-            print(f"Unsupported pixel format: 0x{pixel_format:x}. Using default conversion")
-            print(f"Unsupported pixel format: 0x{pixel_format:x}. Using default conversion")
-            img = numpy_array.reshape((height, width))
-            cv_image = cv2.cvtColor(img, cv2.COLOR_GRAY2RGB)
-
-        if (count < 1000):
+        if count < 1000:
             sum += (time.time()-start_time)
             count += 1
-        elif (count == 1000):
+        elif count == 1000:
             print(f"Average color conversion time: {(sum / 1000):.7f} seconds")
             count += 1
 
-        # Apply scaling if needed
         scale_factor = min(1920 / width, 1080 / height)
         cv_image = cv2.resize(cv_image, (0, 0), fx=scale_factor, fy=scale_factor, interpolation=cv2.INTER_LINEAR)
 
     except Exception as e:
         print(f"Error processing image: {e}")
         cv_image = None
-
     finally:
-        # Always free the buffer
         cam.MV_CC_FreeImageBuffer(stOutFrame)
 
     return cv_image
