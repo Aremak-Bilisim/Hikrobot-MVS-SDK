@@ -23,6 +23,7 @@
     <ProjectGuid>{D16EB49F-295D-4774-A1B7-C2F6FA371797}</ProjectGuid>
     <RootNamespace>Grab_ImageCallback</RootNamespace>
     <Keyword>Win32Proj</Keyword>
+    <WindowsTargetPlatformVersion>10.0.22621.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
@@ -166,7 +167,7 @@
     <ClCompile>
       <Optimization>MaxSpeed</Optimization>
       <IntrinsicFunctions>false</IntrinsicFunctions>
-      <AdditionalIncludeDirectories>$(MVCAM_COMMON_RUNENV)\Includes;C:\Users\Syed\Desktop\opencv\build\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(MVCAM_COMMON_RUNENV)\Includes;C:\Users\Ebadh\Desktop\opencv\build\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <FunctionLevelLinking>false</FunctionLevelLinking>
@@ -177,7 +178,7 @@
     <Link>
       <AdditionalDependencies>MvCameraControl.lib;opencv_world4110.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>$(OutDir)$(ProjectName).exe</OutputFile>
-      <AdditionalLibraryDirectories>$(MVCAM_COMMON_RUNENV)\Libraries\win64;C:\Users\Syed\Desktop\opencv\build\x64\vc16\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(MVCAM_COMMON_RUNENV)\Libraries\win64;C:\Users\Ebadh\Desktop\opencv\build\x64\vc16\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Console</SubSystem>
       <OptimizeReferences>true</OptimizeReferences>
