@@ -18,7 +18,7 @@ MV_PIXEL_FORMAT_BGR8_PACKED = 35127317
 MV_PIXEL_FORMAT_YUV422_PACKED = 34603039
 MV_PIXEL_FORMAT_YUV422_YUYV = 34603058
 MV_PIXEL_FORMAT_BAYER_RG10 = 17825805
-# MV_PIXEL_FORMAT_BAYER_RG10_PACKED = 17563687
+MV_PIXEL_FORMAT_BAYER_RG10_PACKED = 17563687
 MV_PIXEL_FORMAT_BAYER_RG12 = 17825809
 # MV_PIXEL_FORMAT_BAYER_RG12_PACKED = 17563691
 
@@ -89,12 +89,11 @@ def convert_pixel_format(numpy_array, pixel_format, width, height):
         img = (img >> 2).astype(np.uint8)  # Convert 10-bit to 8-bit
         return cv2.cvtColor(img, cv2.COLOR_BayerRG2RGB)
     
-    # elif pixel_format == MV_PIXEL_FORMAT_BAYER_RG10_PACKED:
-    #     print("Bayer10P")
-    #     img = numpy_array.view(np.uint8).reshape(height, width)
-    #     img = img.reshape((height, width, 5//4))
-    #     bayer_data = (img[:, :, 0] << 2) | (img[:, :, 1] >> 6)
-    #     return cv2.cvtColor(bayer_data, cv2.COLOR_BayerRG2BGR)
+    # 10-bit Bayer Packed formats
+    elif pixel_format == MV_PIXEL_FORMAT_BAYER_RG10_PACKED:
+        print("Bayer10P")
+
+        return numpy_array
     
     # 12-bit Bayer formats
     elif pixel_format == MV_PIXEL_FORMAT_BAYER_RG12:
@@ -120,16 +119,28 @@ def convert_pixel_format(numpy_array, pixel_format, width, height):
         img = numpy_array.reshape((height, width, 3))
         return img
     
-    # YUV formats
-    elif pixel_format in [MV_PIXEL_FORMAT_YUV422_PACKED, MV_PIXEL_FORMAT_YUV422_YUYV]:
-        print("YUV422")
+    # YUV formats YUY422 Packed
+    elif pixel_format == MV_PIXEL_FORMAT_YUV422_PACKED:
+        print("YUV422P")
         # First convert to uint8 and reshape to proper dimensions
         data = numpy_array.astype(np.uint8)
         # YUYV format has 2 bytes per pixel, so width needs to be doubled
-        data = data.reshape((height, width, -1))
+        data = data.reshape((height, width, 2))
         # Convert from YUV to BGR
-        bgr_img = cv2.cvtColor(data, cv2.COLOR_YUV2RGB_UYVY)
+        bgr_img = cv2.cvtColor(data, cv2.COLOR_YUV2BGR_UYVY)
         return bgr_img
+    
+    # YUV formats YUY422 
+    elif pixel_format == MV_PIXEL_FORMAT_YUV422_YUYV:
+        print("YUYV")
+        # First convert to uint8 and reshape to proper dimensions
+        data = numpy_array.astype(np.uint8)
+        # YUYV format has 2 bytes per pixel, so width needs to be doubled
+        data = data.reshape((height, width, 2))
+        # Convert from YUV to BGR
+        bgr_img = cv2.cvtColor(data, cv2.COLOR_YUV2BGR_YUYV)
+        return bgr_img
+
     
     else:
         raise ValueError(f"Unsupported pixel format: {pixel_format}")
