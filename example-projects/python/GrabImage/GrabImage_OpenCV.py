@@ -1,10 +1,26 @@
 import sys
+import os
 import ctypes
 import numpy as np
 import cv2
 import time
 
-sys.path.append("../../../common/dependencies/MvImport")
+# Update pixel format constants with correct values
+MV_PIXEL_FORMAT_MONO8 = 17301505
+MV_PIXEL_FORMAT_BAYER_GR8 = 17301512
+MV_PIXEL_FORMAT_BAYER_RG8 = 17301513
+MV_PIXEL_FORMAT_BAYER_GB8 = 17301514
+MV_PIXEL_FORMAT_BAYER_BG8 = 17301515
+MV_PIXEL_FORMAT_RGB8_PACKED = 35127316
+MV_PIXEL_FORMAT_BGR8_PACKED = 35127317
+MV_PIXEL_FORMAT_YUV422_PACKED = 34603039
+MV_PIXEL_FORMAT_YUV422_YUYV = 34603058
+
+# Get the absolute path to the MvImport directory
+current_dir = os.path.dirname(os.path.abspath(__file__))
+mvimport_path = os.path.abspath(os.path.join(current_dir, '..', '..', '..', 'common', 'dependencies', 'MvImport'))
+sys.path.append(mvimport_path)
+
 from MvCameraControl_class import *
 
 count = 0
@@ -25,31 +41,80 @@ def getOpenCVImage(cam):
     ret = cam.MV_CC_GetImageBuffer(stOutFrame, 1000)
     if ret != 0:
         print(f"Failed to get image buffer! Error code: 0x{ret:X}")
-        sys.exit()
+        return None
 
     start_time = time.time()
-    # Convert to OpenCV Image
-    buf_cache = (ctypes.c_ubyte * stOutFrame.stFrameInfo.nFrameLen)()
-    ctypes.memmove(ctypes.byref(buf_cache), stOutFrame.pBufAddr, stOutFrame.stFrameInfo.nFrameLen)
-
-    width, height = stOutFrame.stFrameInfo.nWidth, stOutFrame.stFrameInfo.nHeight
-    scale_factor = min(1920 / width, 1080 / height)
-
-    np_image = np.ctypeslib.as_array(buf_cache).reshape(height, width)
-    cv_image = cv2.cvtColor(np_image, cv2.COLOR_BayerRG2RGB)
     
-    
-    if (count < 1000):
-        sum += (time.time()-start_time)
-        count += 1
-    elif (count == 1000):
-        print(f"Average color conversion time: {(sum / 1000):.7f} seconds")
-        count += 1
+    try:
+        # Convert data to numpy array
+        buf_cache = (ctypes.c_ubyte * stOutFrame.stFrameInfo.nFrameLen)()
+        ctypes.memmove(ctypes.byref(buf_cache), stOutFrame.pBufAddr, stOutFrame.stFrameInfo.nFrameLen)
         
-    
-    cv_image = cv2.resize(cv_image, (0, 0), fx=scale_factor, fy=scale_factor, interpolation=cv2.INTER_LINEAR)
 
-    cam.MV_CC_FreeImageBuffer(stOutFrame)  # Free buffer after use
+        width = stOutFrame.stFrameInfo.nWidth
+        height = stOutFrame.stFrameInfo.nHeight
+        pixel_format = stOutFrame.stFrameInfo.enPixelType
+
+        numpy_array = np.ctypeslib.as_array(buf_cache)
+
+
+        # Convert based on pixel format
+        if pixel_format == MV_PIXEL_FORMAT_MONO8:
+            print("Mono8")
+            img = numpy_array.reshape((height, width))
+            cv_image = cv2.cvtColor(img, cv2.COLOR_GRAY2RGB)
+        elif pixel_format == MV_PIXEL_FORMAT_BAYER_GR8:
+            print("BayerGR8")
+            img = numpy_array.reshape((height, width))
+            cv_image = cv2.cvtColor(img, cv2.COLOR_BayerGR2RGB)
+        elif pixel_format == MV_PIXEL_FORMAT_BAYER_RG8:
+            print("BayerRG8")
+            img = numpy_array.reshape((height, width))
+            cv_image = cv2.cvtColor(img, cv2.COLOR_BayerRG2RGB)
+        elif pixel_format == MV_PIXEL_FORMAT_BAYER_GB8:
+            print("BayerGB8")
+            img = numpy_array.reshape((height, width))
+            cv_image = cv2.cvtColor(img, cv2.COLOR_BayerGB2RGB)
+        elif pixel_format == MV_PIXEL_FORMAT_BAYER_BG8:
+            print("BayerBG8")
+            img = numpy_array.reshape((height, width))
+            cv_image = cv2.cvtColor(img, cv2.COLOR_BayerBG2RGB)
+        elif pixel_format == MV_PIXEL_FORMAT_RGB8_PACKED:
+            print("RGB8Packed")
+            img = numpy_array.reshape((height, width, 3))
+            cv_image = cv2.cvtColor(img, cv2.COLOR_RGB2RGB)
+        elif pixel_format == MV_PIXEL_FORMAT_BGR8_PACKED:
+            print("BGR8Packed")
+            cv_image = numpy_array.reshape((height, width, 3))
+        elif pixel_format == MV_PIXEL_FORMAT_YUV422_PACKED or pixel_format == MV_PIXEL_FORMAT_YUV422_YUYV:
+            print("YUV422Packed")
+            img = numpy_array.reshape((height, width//2, 4))[:,:,:2]
+            img = img.reshape((height, width))
+            cv_image = cv2.cvtColor(img, cv2.COLOR_YUV2RGB_YUYV)
+        else:
+            print(f"Unsupported pixel format: 0x{pixel_format:x}. Using default conversion")
+            print(f"Unsupported pixel format: 0x{pixel_format:x}. Using default conversion")
+            img = numpy_array.reshape((height, width))
+            cv_image = cv2.cvtColor(img, cv2.COLOR_GRAY2RGB)
+
+        if (count < 1000):
+            sum += (time.time()-start_time)
+            count += 1
+        elif (count == 1000):
+            print(f"Average color conversion time: {(sum / 1000):.7f} seconds")
+            count += 1
+
+        # Apply scaling if needed
+        scale_factor = min(1920 / width, 1080 / height)
+        cv_image = cv2.resize(cv_image, (0, 0), fx=scale_factor, fy=scale_factor, interpolation=cv2.INTER_LINEAR)
+
+    except Exception as e:
+        print(f"Error processing image: {e}")
+        cv_image = None
+
+    finally:
+        # Always free the buffer
+        cam.MV_CC_FreeImageBuffer(stOutFrame)
 
     return cv_image
 
@@ -188,6 +253,7 @@ if __name__ == "__main__":
 
     print("Camera is grabbing frames... Press ESC to exit.")
 
+    cv2.namedWindow("Image", cv2.WINDOW_NORMAL)
     create_trackbar(exposure_min, exposure_max, gain_min, gain_max)
 
 
