@@ -48,6 +48,42 @@ namespace GrabImage
                     Cv2.CvtColor(img12, image, ColorConversionCodes.GRAY2BGR);
                     break;
 
+                case MyCamera.MvGvspPixelType.PixelType_Gvsp_RGB8_Packed:
+                    image = Mat.FromPixelData(height, width, MatType.CV_8UC3, buffer);
+                    Cv2.CvtColor(image, image, ColorConversionCodes.RGB2BGR);
+                    break;
+
+                case MyCamera.MvGvspPixelType.PixelType_Gvsp_BGR8_Packed:
+                    image = Mat.FromPixelData(height, width, MatType.CV_8UC3, buffer);
+                    break;
+
+                case MyCamera.MvGvspPixelType.PixelType_Gvsp_YUV422_Packed:
+                    image = Mat.FromPixelData(height, width, MatType.CV_8UC2, buffer);
+                    Cv2.CvtColor(image, image, ColorConversionCodes.YUV2BGR_UYVY);
+                    break;
+
+                case MyCamera.MvGvspPixelType.PixelType_Gvsp_YUV422_YUYV_Packed:
+                    image = Mat.FromPixelData(height, width, MatType.CV_8UC2, buffer);
+                    Cv2.CvtColor(image, image, ColorConversionCodes.YUV2BGR_YUYV);
+                    break;
+
+                case MyCamera.MvGvspPixelType.PixelType_Gvsp_BayerRG8:
+                    image = Mat.FromPixelData(height, width, MatType.CV_8UC1, buffer);
+                    Cv2.CvtColor(image, image, ColorConversionCodes.BayerRG2RGB);
+                    break;
+
+                case MyCamera.MvGvspPixelType.PixelType_Gvsp_BayerRG10:
+                    Mat img11 = Mat.FromPixelData(height, width, MatType.CV_16UC1, buffer);
+                    img11.ConvertTo(img11, MatType.CV_8U, 1.0 / 4); // Scale down from 10-bit to 8-bit
+                    Cv2.CvtColor(img11, image, ColorConversionCodes.BayerRG2RGB);
+                    break;
+
+                case MyCamera.MvGvspPixelType.PixelType_Gvsp_BayerRG12:
+                    Mat img13 = Mat.FromPixelData(height, width, MatType.CV_16UC1, buffer);
+                    img13.ConvertTo(img13, MatType.CV_8U, 1.0 / 4); // Scale down from 10-bit to 8-bit
+                    Cv2.CvtColor(img13, image, ColorConversionCodes.BayerRG2RGB);
+                    break;
+
                 default:
                     throw new Exception("Unsupported pixel format");
             }
@@ -63,10 +99,24 @@ namespace GrabImage
             switch (pixelFormat)
             {
                 case MyCamera.MvGvspPixelType.PixelType_Gvsp_Mono8:
+                case MyCamera.MvGvspPixelType.PixelType_Gvsp_BayerRG8:
                     return MatType.CV_8UC1;
+
                 case MyCamera.MvGvspPixelType.PixelType_Gvsp_Mono10:
                 case MyCamera.MvGvspPixelType.PixelType_Gvsp_Mono12:
-                    return MatType.CV_16UC1; 
+                case MyCamera.MvGvspPixelType.PixelType_Gvsp_BayerRG10:
+                case MyCamera.MvGvspPixelType.PixelType_Gvsp_BayerRG12:
+                    return MatType.CV_16UC1;
+
+                case MyCamera.MvGvspPixelType.PixelType_Gvsp_RGB8_Packed:
+                case MyCamera.MvGvspPixelType.PixelType_Gvsp_BGR8_Packed:
+                    return MatType.CV_8UC3;
+
+                case MyCamera.MvGvspPixelType.PixelType_Gvsp_YUV422_Packed:
+                case MyCamera.MvGvspPixelType.PixelType_Gvsp_YUV422_YUYV_Packed:
+                    return MatType.CV_8UC2;
+
+            
                 default:
                     throw new Exception("Unsupported pixel format");
             }
