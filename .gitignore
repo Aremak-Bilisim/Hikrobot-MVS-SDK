@@ -9,6 +9,7 @@
 /example-projects/cpp/GrabImage_OpenCV/Win32
 /example-projects/cpp/GrabImage_OpenCV/.vs
 example-projects/cpp/GrabImage_OpenCV/GrabImage_VS2013.sdf
+/example-projects/cpp/GrabImage_OpenCV/packages
 
 
 # C# specific
@@ -17,7 +18,7 @@ example-projects/cpp/GrabImage_OpenCV/GrabImage_VS2013.sdf
 /example-projects/csharp/GrabImage_OpenCV/obj
 /example-projects/csharp/GrabImage_OpenCV/GrabImage/bin
 /example-projects/csharp/GrabImage_OpenCV/GrabImage/obj
-/example-projects/cpp/GrabImage_OpenCV/packages
+/example-projects/csharp/GrabImage_OpenCV/packages
 
 
 

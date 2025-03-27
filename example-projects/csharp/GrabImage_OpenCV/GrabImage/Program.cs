@@ -19,6 +19,59 @@ namespace GrabImage
         static int minGain = 0; // Set this to your camera's minimum gain value
         static int maxGain = 100; // Set this to your camera's maximum gain value
 
+        static MyCamera.MvGvspPixelType mvGvspPixelType;
+
+
+
+
+        public static Mat ConvertPixelFormat(IntPtr buffer, MyCamera.MvGvspPixelType pixelFormat, int width, int height)
+        {
+            Mat image = new Mat();
+
+            switch (pixelFormat)
+            {
+                case MyCamera.MvGvspPixelType.PixelType_Gvsp_Mono8:
+                    Console.WriteLine("Mono8");
+                    image = Mat.FromPixelData(height, width, MatType.CV_8UC1, buffer);
+                    Cv2.CvtColor(image, image, ColorConversionCodes.GRAY2BGR);
+                    break;
+
+                case MyCamera.MvGvspPixelType.PixelType_Gvsp_Mono10:
+                    Mat img10 = Mat.FromPixelData(height, width, MatType.CV_16UC1, buffer);
+                    img10.ConvertTo(img10, MatType.CV_8U, 1.0 / 4); // Scale down from 10-bit to 8-bit
+                    Cv2.CvtColor(img10, image, ColorConversionCodes.GRAY2BGR);
+                    break;
+
+                case MyCamera.MvGvspPixelType.PixelType_Gvsp_Mono12:
+                    Mat img12 = Mat.FromPixelData(height, width, MatType.CV_16UC1, buffer);
+                    img12.ConvertTo(img12, MatType.CV_8U, 1.0 / 16); // Scale down from 12-bit to 8-bit
+                    Cv2.CvtColor(img12, image, ColorConversionCodes.GRAY2BGR);
+                    break;
+
+                default:
+                    throw new Exception("Unsupported pixel format");
+            }
+
+            return image;
+        }
+
+
+        
+
+        private static MatType GetMatType(MyCamera.MvGvspPixelType pixelFormat)
+        {
+            switch (pixelFormat)
+            {
+                case MyCamera.MvGvspPixelType.PixelType_Gvsp_Mono8:
+                    return MatType.CV_8UC1;
+                case MyCamera.MvGvspPixelType.PixelType_Gvsp_Mono10:
+                case MyCamera.MvGvspPixelType.PixelType_Gvsp_Mono12:
+                    return MatType.CV_16UC1; 
+                default:
+                    throw new Exception("Unsupported pixel format");
+            }
+        }
+
 
         public static void ReceiveImageWorkThread(object obj)
         {
@@ -35,9 +88,6 @@ namespace GrabImage
             Cv2.NamedWindow(settingsWindow);
 
             // Create trackbars for exposure and gain
-
-
-            // Create trackbars for exposure and gain
             Cv2.CreateTrackbar("Exposure", settingsWindow, ref minExposure, maxExposure, null);
             Cv2.CreateTrackbar("Gain", settingsWindow, ref minGain, maxGain, null);
 
@@ -52,6 +102,9 @@ namespace GrabImage
                         int height = stImageOut.stFrameInfo.nHeight;
                         int dataSize = (int)stImageOut.stFrameInfo.nFrameLen;
 
+                        mvGvspPixelType = stImageOut.stFrameInfo.enPixelType;
+                        Console.WriteLine($"Image Format: {mvGvspPixelType}");
+
                         Stopwatch stopwatch = new Stopwatch();
                         stopwatch.Start();
 
@@ -60,18 +113,16 @@ namespace GrabImage
                         Marshal.Copy(stImageOut.pBufAddr, imageData, 0, dataSize);
 
                         // Create Mat for the raw data
-                        using (Mat rawImg = new Mat(height, width, MatType.CV_8UC1))
+                        using (Mat rawImg = new Mat(height, width, GetMatType(mvGvspPixelType)))
                         {
                             Marshal.Copy(imageData, 0, rawImg.Data, dataSize);
 
-                            using (Mat colorImg = new Mat())
-                            {
-                                // Convert from Bayer BG to BGR
-                                Cv2.CvtColor(rawImg, colorImg, ColorConversionCodes.BayerBG2BGR);
+                            // Call ConvertPixelFormat function
+                            Mat colorImg = ConvertPixelFormat(stImageOut.pBufAddr, mvGvspPixelType, width, height);
 
-                                // Display the image with correct colors
-                                Cv2.ImShow(windowName, colorImg);
-                            }
+
+                            // Display the image with correct colors
+                            Cv2.ImShow(windowName, colorImg);
 
                             stopwatch.Stop();
                             TimeSpan elapsedTime = stopwatch.Elapsed;
@@ -80,9 +131,7 @@ namespace GrabImage
                             if (count < 1000)
                                 sum += elapsedTime.TotalSeconds;
                             else if (count == 1000)
-                                Console.WriteLine("Average color convertion time: " + sum / 1000 + " seconds");
-
-                            
+                                Console.WriteLine("Average color conversion time: " + sum / 1000 + " seconds");
 
                             // Wait for 1ms to process GUI events
                             int key = Cv2.WaitKey(1);
@@ -125,7 +174,7 @@ namespace GrabImage
         }
 
 
-        
+
 
         static void Main(string[] args)
         {
