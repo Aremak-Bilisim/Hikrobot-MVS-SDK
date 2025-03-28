@@ -45,7 +45,8 @@ Provide step-by-step instructions for installing Visual Studio 2015 and any addi
 5. **Configure Additional Dependencies:**
 
    - Navigate to `Linker -> Input -> Additional Dependencies`.
-   - Add `opencv_worldXXXX.lib` to the list. This file is located in `PATH_TO_OPENCV\opencv\build\x64\vcXX\lib`.
+   - Add `opencv_worldXXXX.lib` to the list for Release. This file is located in `PATH_TO_OPENCV\opencv\build\x64\vcXX\lib`.
+   - Add `opencv_worldXXXXd.lib` to the list for Debug. This file is located in `PATH_TO_OPENCV\opencv\build\x64\vcXX\lib`.
 
 6. **Repeat for Both Configurations:**
    - Ensure that the above steps are performed for both the `Debug` and `Release` configurations.
