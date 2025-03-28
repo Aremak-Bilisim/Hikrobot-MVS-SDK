@@ -106,20 +106,17 @@ cv::Mat convertPixelFormat(unsigned char* buffer, int pixelFormat, int width, in
 
 	switch (pixelFormat) {
 	case MV_PIXEL_FORMAT_MONO8: {
-		std::cout << "Mono8" << std::endl;
 		image = cv::Mat(height, width, CV_8UC1, buffer);
 		cv::cvtColor(image, image, cv::COLOR_GRAY2BGR);
 		break;
 	}
 	case MV_PIXEL_FORMAT_MONO10: {
-		std::cout << "Mono10" << std::endl;
 		cv::Mat img(height, width, CV_16UC1, buffer);
 		img.convertTo(img, CV_8U, 1.0 / 4); // Scale down from 10-bit to 8-bit
 		cv::cvtColor(img, image, cv::COLOR_GRAY2BGR);
 		break;
 	}
 	case MV_PIXEL_FORMAT_MONO12: {
-		std::cout << "Mono12" << std::endl;
 		cv::Mat img(height, width, CV_16UC1, buffer);
 		img.convertTo(img, CV_8U, 1.0 / 16); // Scale down from 12-bit to 8-bit
 		cv::cvtColor(img, image, cv::COLOR_GRAY2BGR);
@@ -129,7 +126,6 @@ cv::Mat convertPixelFormat(unsigned char* buffer, int pixelFormat, int width, in
 	case MV_PIXEL_FORMAT_BAYER_RG8:
 	case MV_PIXEL_FORMAT_BAYER_GB8:
 	case MV_PIXEL_FORMAT_BAYER_BG8: {
-		std::cout << "Bayer8" << std::endl;
 		image = cv::Mat(height, width, CV_8UC1, buffer);
 		int code = 0;
 		switch (pixelFormat) {
@@ -142,38 +138,32 @@ cv::Mat convertPixelFormat(unsigned char* buffer, int pixelFormat, int width, in
 		break;
 	}
 	case MV_PIXEL_FORMAT_BAYER_RG10: {
-		std::cout << "Bayer10" << std::endl;
 		cv::Mat img(height, width, CV_16UC1, buffer);
 		img.convertTo(img, CV_8U, 1.0 / 4); // Convert 10-bit to 8-bit
 		cv::cvtColor(img, image, cv::COLOR_BayerRG2RGB);
 		break;
 	}
 	case MV_PIXEL_FORMAT_BAYER_RG10_PACKED: {
-		std::cout << "Bayer10P" << std::endl;
 		// Handle packed 10-bit Bayer format
 		// This requires specific unpacking logic, not implemented here
 		break;
 	}
 	case MV_PIXEL_FORMAT_BAYER_RG12: {
-		std::cout << "Bayer12" << std::endl;
 		cv::Mat img(height, width, CV_16UC1, buffer);
 		img.convertTo(img, CV_8U, 1.0 / 16); // Convert 12-bit to 8-bit
 		cv::cvtColor(img, image, cv::COLOR_BayerRG2RGB);
 		break;
 	}
 	case MV_PIXEL_FORMAT_RGB8_PACKED: {
-		std::cout << "RGB8" << std::endl;
 		image = cv::Mat(height, width, CV_8UC3, buffer);
 		cv::cvtColor(image, image, cv::COLOR_RGB2BGR);
 		break;
 	}
 	case MV_PIXEL_FORMAT_BGR8_PACKED: {
-		std::cout << "BGR8" << std::endl;
 		image = cv::Mat(height, width, CV_8UC3, buffer);
 		break;
 	}
 	case MV_PIXEL_FORMAT_YUV422_PACKED: {
-		std::cout << "YUV422_PACKED" << std::endl;
 		cv::Mat data(height, width, CV_8UC2, buffer);
 		cv::cvtColor(data, image, cv::COLOR_YUV2BGR_UYVY);
 		break;
@@ -181,7 +171,6 @@ cv::Mat convertPixelFormat(unsigned char* buffer, int pixelFormat, int width, in
 
 
 	case MV_PIXEL_FORMAT_YUV422_YUYV: {
-		std::cout << "YUV422_YUYV" << std::endl;
 		cv::Mat data(height, width, CV_8UC2, buffer);
 		cv::cvtColor(data, image, cv::COLOR_YUV2BGR_YUYV);
 		break;
@@ -217,27 +206,6 @@ static unsigned int __stdcall WorkThread(void* pUser)
 		if (nRet == MV_OK)
 		{
 			auto startTime = std::chrono::high_resolution_clock::now();
-
-			/*
-			// Convert the image buffer to an OpenCV Mat
-			if (stImageInfo.stFrameInfo.enPixelType == PixelType_Gvsp_BayerRG8)
-			{
-				cv::Mat rawImage(stImageInfo.stFrameInfo.nHeight, stImageInfo.stFrameInfo.nWidth, CV_8UC1, stImageInfo.pBufAddr);
-				cv::cvtColor(rawImage, image, cv::COLOR_BayerBG2BGR);
-			}
-			else if (stImageInfo.stFrameInfo.enPixelType == PixelType_Gvsp_Mono8)
-			{
-				// Handle monochrome images
-				image = cv::Mat(stImageInfo.stFrameInfo.nHeight, stImageInfo.stFrameInfo.nWidth, CV_8UC1, stImageInfo.pBufAddr);
-				cv::cvtColor(image, image, cv::COLOR_GRAY2BGR);
-			}
-			else
-			{
-				printf("Unsupported pixel format: %d\n", stImageInfo.stFrameInfo.enPixelType);
-				nRet = MV_CC_FreeImageBuffer(pUser, &stImageInfo);
-				continue;
-			}
-			*/
 
 			cv::Mat image = convertPixelFormat(stImageInfo.pBufAddr, stImageInfo.stFrameInfo.enPixelType, stImageInfo.stFrameInfo.nWidth, stImageInfo.stFrameInfo.nHeight);
 
