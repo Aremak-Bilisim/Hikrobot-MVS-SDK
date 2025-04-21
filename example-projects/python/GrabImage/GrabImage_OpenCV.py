@@ -33,12 +33,69 @@ count = 0
 sum = 0
 
 
+"""
+This script interfaces with a camera using the MvImport library, providing functionalities to set camera settings, convert pixel formats, and retrieve images. The main features include:
+
+### Key Functionalities:
+1. **Camera Initialization and Setup**:
+   - Initializes the camera SDK.
+   - Enumerates and lists all connected camera devices.
+   - Allows the user to select a device and connect to it.
+
+2. **Camera Settings Configuration**:
+   - Sets initial camera parameters such as exposure time and gain.
+   - Provides functions to retrieve exposure and gain limits from the camera.
+
+3. **Pixel Format Conversion**:
+   - Converts raw image data to RGB format based on the pixel format.
+   - Supports various pixel formats including MONO8, MONO10, MONO12, BAYER formats, RGB/BGR packed formats, and YUV formats.
+   - Uses global variables for pixel format constants to ensure consistency in conversions.
+
+4. **Image Retrieval and Display**:
+   - Continuously grabs frames from the camera.
+   - Displays the frames using OpenCV.
+   - Includes error handling for image retrieval and processing.
+
+5. **User Interface for Settings Adjustment**:
+   - Creates a trackbar window for adjusting exposure and gain settings in real-time.
+   - Updates camera settings based on trackbar inputs.
+
+6. **Resource Management**:
+   - Ensures proper cleanup of resources, including stopping image grabbing, closing the device, and destroying the handle.
+
+### Global Variables for Pixel Conversion:
+The following global variables must be used whenever there is pixel conversion:
+- MV_PIXEL_FORMAT_MONO8 = 17301505
+- MV_PIXEL_FORMAT_MONO10 = 17825795
+- MV_PIXEL_FORMAT_MONO12 = 17825797
+- MV_PIXEL_FORMAT_BAYER_GR8 = 17301512
+- MV_PIXEL_FORMAT_BAYER_RG8 = 17301513
+- MV_PIXEL_FORMAT_BAYER_GB8 = 17301514
+- MV_PIXEL_FORMAT_BAYER_BG8 = 17301515
+- MV_PIXEL_FORMAT_RGB8_PACKED = 35127316
+- MV_PIXEL_FORMAT_BGR8_PACKED = 35127317
+- MV_PIXEL_FORMAT_YUV422_PACKED = 34603039
+- MV_PIXEL_FORMAT_YUV422_YUYV = 34603058
+- MV_PIXEL_FORMAT_BAYER_RG10 = 17825805
+- MV_PIXEL_FORMAT_BAYER_RG10_PACKED = 17563687
+- MV_PIXEL_FORMAT_BAYER_RG12 = 17825809
+# MV_PIXEL_FORMAT_BAYER_RG12_PACKED = 17563691
+
+### Dependencies:
+- **MvImport library**: For camera control.
+- **OpenCV**: For image processing and display.
+- **NumPy**: For numerical operations.
+- **ctypes**: For low-level operations.
+
+This script is designed to be robust and includes error handling for various operations to ensure smooth functionality.
+"""
+
+
+
 def set_camera_settings(cam):
     # Set camera parameters
     cam.MV_CC_SetFloatValue("ExposureTime", 10000.0)  # Set exposure time
     cam.MV_CC_SetEnumValue("GainAuto", 0)  # Disable auto gain
-
-
 
 
 def convert_pixel_format(numpy_array, pixel_format, width, height):
