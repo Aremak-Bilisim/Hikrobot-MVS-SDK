@@ -47,13 +47,11 @@ def convert_pixel_format(numpy_array, pixel_format, width, height):
     """
     # 8-bit formats
     if pixel_format == MV_PIXEL_FORMAT_MONO8:
-        print("Mono8")
         img = numpy_array.reshape((height, width))
         return cv2.cvtColor(img, cv2.COLOR_GRAY2RGB)
     
     # 10-bit format
     elif pixel_format == MV_PIXEL_FORMAT_MONO10:
-        print("Mono10")
         # Reshape to 2D array of 16-bit values
         img = numpy_array.view(np.uint16).reshape(height, width)
         # Scale down from 10-bit to 8-bit
@@ -62,7 +60,6 @@ def convert_pixel_format(numpy_array, pixel_format, width, height):
     
     # 12-bit format
     elif pixel_format == MV_PIXEL_FORMAT_MONO12:
-        print("Mono12")
         # Reshape to 2D array of 16-bit values
         img = numpy_array.view(np.uint16).reshape(height, width)
         # Scale down from 12-bit to 8-bit
@@ -72,7 +69,6 @@ def convert_pixel_format(numpy_array, pixel_format, width, height):
     # 8-bit Bayer formats
     elif pixel_format in [MV_PIXEL_FORMAT_BAYER_GR8, MV_PIXEL_FORMAT_BAYER_RG8, 
                          MV_PIXEL_FORMAT_BAYER_GB8, MV_PIXEL_FORMAT_BAYER_BG8]:
-        print("Bayer8")
         img = numpy_array.reshape((height, width))
         conversion_map = {
             MV_PIXEL_FORMAT_BAYER_GR8: cv2.COLOR_BayerGR2RGB,
@@ -84,20 +80,16 @@ def convert_pixel_format(numpy_array, pixel_format, width, height):
     
     # 10-bit Bayer formats
     elif pixel_format == MV_PIXEL_FORMAT_BAYER_RG10:
-        print("Bayer10")
         img = numpy_array.view(np.uint16).reshape(height, width)
         img = (img >> 2).astype(np.uint8)  # Convert 10-bit to 8-bit
         return cv2.cvtColor(img, cv2.COLOR_BayerRG2RGB)
     
     # 10-bit Bayer Packed formats
     elif pixel_format == MV_PIXEL_FORMAT_BAYER_RG10_PACKED:
-        print("Bayer10P")
-
         return numpy_array
     
     # 12-bit Bayer formats
     elif pixel_format == MV_PIXEL_FORMAT_BAYER_RG12:
-        print("Bayer12")
         img = numpy_array.view(np.uint16).reshape(height, width)
         img = (img >> 4).astype(np.uint8)  # Convert 12-bit to 8-bit
         return cv2.cvtColor(img, cv2.COLOR_BayerRG2RGB)
@@ -111,17 +103,14 @@ def convert_pixel_format(numpy_array, pixel_format, width, height):
     
     # Packed RGB/BGR formats
     elif pixel_format == MV_PIXEL_FORMAT_RGB8_PACKED:
-        print("RGB8")
         return cv2.cvtColor(numpy_array.reshape((height, width, 3)), cv2.COLOR_RGB2BGR)
     
     elif pixel_format == MV_PIXEL_FORMAT_BGR8_PACKED:
-        print("BGR8")
         img = numpy_array.reshape((height, width, 3))
         return img
     
     # YUV formats YUY422 Packed
     elif pixel_format == MV_PIXEL_FORMAT_YUV422_PACKED:
-        print("YUV422P")
         # First convert to uint8 and reshape to proper dimensions
         data = numpy_array.astype(np.uint8)
         # YUYV format has 2 bytes per pixel, so width needs to be doubled
@@ -132,7 +121,6 @@ def convert_pixel_format(numpy_array, pixel_format, width, height):
     
     # YUV formats YUY422 
     elif pixel_format == MV_PIXEL_FORMAT_YUV422_YUYV:
-        print("YUYV")
         # First convert to uint8 and reshape to proper dimensions
         data = numpy_array.astype(np.uint8)
         # YUYV format has 2 bytes per pixel, so width needs to be doubled
@@ -162,8 +150,6 @@ def getOpenCVImage(cam):
         width = stOutFrame.stFrameInfo.nWidth
         height = stOutFrame.stFrameInfo.nHeight
         pixel_format = stOutFrame.stFrameInfo.enPixelType
-
-        print(f"Pixel format: {pixel_format}")
 
         numpy_array = np.ctypeslib.as_array(buf_cache)
         
@@ -252,25 +238,81 @@ if __name__ == "__main__":
 
     # Print information about each device
     for i in range(0, deviceList.nDeviceNum):
-        mvcc_dev_info = ctypes.cast(deviceList.pDeviceInfo[i], ctypes.POINTER(MV_CC_DEVICE_INFO)).contents
+        mvcc_dev_info = cast(deviceList.pDeviceInfo[i], POINTER(MV_CC_DEVICE_INFO)).contents
         if mvcc_dev_info.nTLayerType == MV_GIGE_DEVICE or mvcc_dev_info.nTLayerType == MV_GENTL_GIGE_DEVICE:
-            print(f"\nGigE device: [{i}]")
-            strModeName = "".join(chr(per) for per in mvcc_dev_info.SpecialInfo.stGigEInfo.chModelName if per != 0)
-            print(f"Device model name: {strModeName}")
+            print ("\ngige device: [%d]" % i)
+            strModeName = ""
+            for per in mvcc_dev_info.SpecialInfo.stGigEInfo.chModelName:
+                if per == 0:
+                    break
+                strModeName = strModeName + chr(per)
+            print ("device model name: %s" % strModeName)
 
-            nip1 = (mvcc_dev_info.SpecialInfo.stGigEInfo.nCurrentIp & 0xff000000) >> 24
-            nip2 = (mvcc_dev_info.SpecialInfo.stGigEInfo.nCurrentIp & 0x00ff0000) >> 16
-            nip3 = (mvcc_dev_info.SpecialInfo.stGigEInfo.nCurrentIp & 0x0000ff00) >> 8
-            nip4 = mvcc_dev_info.SpecialInfo.stGigEInfo.nCurrentIp & 0x000000ff
-            print(f"Current IP: {nip1}.{nip2}.{nip3}.{nip4}\n")
+            nip1 = ((mvcc_dev_info.SpecialInfo.stGigEInfo.nCurrentIp & 0xff000000) >> 24)
+            nip2 = ((mvcc_dev_info.SpecialInfo.stGigEInfo.nCurrentIp & 0x00ff0000) >> 16)
+            nip3 = ((mvcc_dev_info.SpecialInfo.stGigEInfo.nCurrentIp & 0x0000ff00) >> 8)
+            nip4 = (mvcc_dev_info.SpecialInfo.stGigEInfo.nCurrentIp & 0x000000ff)
+            print ("current ip: %d.%d.%d.%d\n" % (nip1, nip2, nip3, nip4))
         elif mvcc_dev_info.nTLayerType == MV_USB_DEVICE:
-            print(f"\nUSB device: [{i}]")
-            strModeName = "".join(chr(per) for per in mvcc_dev_info.SpecialInfo.stUsb3VInfo.chModelName if per != 0)
-            print(f"Device model name: {strModeName}")
+            print ("\nu3v device: [%d]" % i)
+            strModeName = ""
+            for per in mvcc_dev_info.SpecialInfo.stUsb3VInfo.chModelName:
+                if per == 0:
+                    break
+                strModeName = strModeName + chr(per)
+            print ("device model name: %s" % strModeName)
 
-            strSerialNumber = "".join(chr(per) for per in mvcc_dev_info.SpecialInfo.stUsb3VInfo.chSerialNumber if per != 0)
-            print(f"User serial number: {strSerialNumber}")
-        # Similar checks for other device types...
+            strSerialNumber = ""
+            for per in mvcc_dev_info.SpecialInfo.stUsb3VInfo.chSerialNumber:
+                if per == 0:
+                    break
+                strSerialNumber = strSerialNumber + chr(per)
+            print ("user serial number: %s" % strSerialNumber)
+        elif mvcc_dev_info.nTLayerType == MV_GENTL_CAMERALINK_DEVICE:
+            print ("\nCML device: [%d]" % i)
+            strModeName = ""
+            for per in mvcc_dev_info.SpecialInfo.stCMLInfo.chModelName:
+                if per == 0:
+                    break
+                strModeName = strModeName + chr(per)
+            print ("device model name: %s" % strModeName)
+
+            strSerialNumber = ""
+            for per in mvcc_dev_info.SpecialInfo.stCMLInfo.chSerialNumber:
+                if per == 0:
+                    break
+                strSerialNumber = strSerialNumber + chr(per)
+            print ("user serial number: %s" % strSerialNumber)
+        elif mvcc_dev_info.nTLayerType == MV_GENTL_CXP_DEVICE:
+            print ("\nCXP device: [%d]" % i)
+            strModeName = ""
+            for per in mvcc_dev_info.SpecialInfo.stCXPInfo.chModelName:
+                if per == 0:
+                    break
+                strModeName = strModeName + chr(per)
+            print ("device model name: %s" % strModeName)
+
+            strSerialNumber = ""
+            for per in mvcc_dev_info.SpecialInfo.stCXPInfo.chSerialNumber:
+                if per == 0:
+                    break
+                strSerialNumber = strSerialNumber + chr(per)
+            print ("user serial number: %s" % strSerialNumber)
+        elif mvcc_dev_info.nTLayerType == MV_GENTL_XOF_DEVICE:
+            print ("\nXoF device: [%d]" % i)
+            strModeName = ""
+            for per in mvcc_dev_info.SpecialInfo.stXoFInfo.chModelName:
+                if per == 0:
+                    break
+                strModeName = strModeName + chr(per)
+            print ("device model name: %s" % strModeName)
+
+            strSerialNumber = ""
+            for per in mvcc_dev_info.SpecialInfo.stXoFInfo.chSerialNumber:
+                if per == 0:
+                    break
+                strSerialNumber = strSerialNumber + chr(per)
+            print ("user serial number: %s" % strSerialNumber)
 
     # Get the user's choice for which device to connect
     nConnectionNum = int(input("Please input the number of the device to connect: "))
