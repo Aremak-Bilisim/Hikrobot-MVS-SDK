@@ -6,6 +6,7 @@
 #include "../../../common/dependencies/includes/MvCameraControl.h"
 #include <opencv2/opencv.hpp>
 
+
 bool g_bExit = false;
 int minExposure = 0;
 int minGain = 0;
@@ -14,25 +15,6 @@ int maxGain = 50;
 int maxAllowedExposure = 1000000;
 int count = 0;
 double sum = 0.0;
-
-
-
-
-// Define pixel format constants
-const int MV_PIXEL_FORMAT_MONO8 = 17301505;
-const int MV_PIXEL_FORMAT_MONO10 = 17825795;
-const int MV_PIXEL_FORMAT_MONO12 = 17825797;
-const int MV_PIXEL_FORMAT_BAYER_GR8 = 17301512;
-const int MV_PIXEL_FORMAT_BAYER_RG8 = 17301513;
-const int MV_PIXEL_FORMAT_BAYER_GB8 = 17301514;
-const int MV_PIXEL_FORMAT_BAYER_BG8 = 17301515;
-const int MV_PIXEL_FORMAT_RGB8_PACKED = 35127316;
-const int MV_PIXEL_FORMAT_BGR8_PACKED = 35127317;
-const int MV_PIXEL_FORMAT_YUV422_PACKED = 34603039;
-const int MV_PIXEL_FORMAT_YUV422_YUYV = 34603058;
-const int MV_PIXEL_FORMAT_BAYER_RG10 = 17825805;
-const int MV_PIXEL_FORMAT_BAYER_RG10_PACKED = 17563687;
-const int MV_PIXEL_FORMAT_BAYER_RG12 = 17825809;
 
 
 
@@ -105,72 +87,72 @@ cv::Mat convertPixelFormat(unsigned char* buffer, int pixelFormat, int width, in
 	cv::Mat image;
 
 	switch (pixelFormat) {
-	case MV_PIXEL_FORMAT_MONO8: {
+	case PixelType_Gvsp_Mono8: {
 		image = cv::Mat(height, width, CV_8UC1, buffer);
 		cv::cvtColor(image, image, cv::COLOR_GRAY2BGR);
 		break;
 	}
-	case MV_PIXEL_FORMAT_MONO10: {
+	case PixelType_Gvsp_Mono10: {
 		cv::Mat img(height, width, CV_16UC1, buffer);
 		img.convertTo(img, CV_8U, 1.0 / 4); // Scale down from 10-bit to 8-bit
 		cv::cvtColor(img, image, cv::COLOR_GRAY2BGR);
 		break;
 	}
-	case MV_PIXEL_FORMAT_MONO12: {
+	case PixelType_Gvsp_Mono12: {
 		cv::Mat img(height, width, CV_16UC1, buffer);
 		img.convertTo(img, CV_8U, 1.0 / 16); // Scale down from 12-bit to 8-bit
 		cv::cvtColor(img, image, cv::COLOR_GRAY2BGR);
 		break;
 	}
-	case MV_PIXEL_FORMAT_BAYER_GR8:
-	case MV_PIXEL_FORMAT_BAYER_RG8:
-	case MV_PIXEL_FORMAT_BAYER_GB8:
-	case MV_PIXEL_FORMAT_BAYER_BG8: {
+	case PixelType_Gvsp_BayerGR8:
+	case PixelType_Gvsp_BayerRG8:
+	case PixelType_Gvsp_BayerGB8:
+	case PixelType_Gvsp_BayerBG8: {
 		image = cv::Mat(height, width, CV_8UC1, buffer);
 		int code = 0;
 		switch (pixelFormat) {
-		case MV_PIXEL_FORMAT_BAYER_GR8: code = cv::COLOR_BayerGR2BGR; break;
-		case MV_PIXEL_FORMAT_BAYER_RG8: code = cv::COLOR_BayerRG2RGB; break;
-		case MV_PIXEL_FORMAT_BAYER_GB8: code = cv::COLOR_BayerGB2BGR; break;
-		case MV_PIXEL_FORMAT_BAYER_BG8: code = cv::COLOR_BayerBG2BGR; break;
+		case PixelType_Gvsp_BayerGR8: code = cv::COLOR_BayerGR2BGR; break;
+		case PixelType_Gvsp_BayerRG8: code = cv::COLOR_BayerRG2RGB; break;
+		case PixelType_Gvsp_BayerGB8: code = cv::COLOR_BayerGB2BGR; break;
+		case PixelType_Gvsp_BayerBG8: code = cv::COLOR_BayerBG2BGR; break;
 		}
 		cv::cvtColor(image, image, code);
 		break;
 	}
-	case MV_PIXEL_FORMAT_BAYER_RG10: {
+	case PixelType_Gvsp_BayerRG10: {
 		cv::Mat img(height, width, CV_16UC1, buffer);
 		img.convertTo(img, CV_8U, 1.0 / 4); // Convert 10-bit to 8-bit
 		cv::cvtColor(img, image, cv::COLOR_BayerRG2RGB);
 		break;
 	}
-	case MV_PIXEL_FORMAT_BAYER_RG10_PACKED: {
+	case PixelType_Gvsp_BayerRG10_Packed: {
 		// Handle packed 10-bit Bayer format
 		// This requires specific unpacking logic, not implemented here
 		break;
 	}
-	case MV_PIXEL_FORMAT_BAYER_RG12: {
+	case PixelType_Gvsp_BayerRG12: {
 		cv::Mat img(height, width, CV_16UC1, buffer);
 		img.convertTo(img, CV_8U, 1.0 / 16); // Convert 12-bit to 8-bit
 		cv::cvtColor(img, image, cv::COLOR_BayerRG2RGB);
 		break;
 	}
-	case MV_PIXEL_FORMAT_RGB8_PACKED: {
+	case PixelType_Gvsp_RGB8_Packed: {
 		image = cv::Mat(height, width, CV_8UC3, buffer);
 		cv::cvtColor(image, image, cv::COLOR_RGB2BGR);
 		break;
 	}
-	case MV_PIXEL_FORMAT_BGR8_PACKED: {
+	case PixelType_Gvsp_BGR8_Packed: {
 		image = cv::Mat(height, width, CV_8UC3, buffer);
 		break;
 	}
-	case MV_PIXEL_FORMAT_YUV422_PACKED: {
+	case PixelType_Gvsp_YUV422_Packed: {
 		cv::Mat data(height, width, CV_8UC2, buffer);
 		cv::cvtColor(data, image, cv::COLOR_YUV2BGR_UYVY);
 		break;
 	}
 
 
-	case MV_PIXEL_FORMAT_YUV422_YUYV: {
+	case PixelType_Gvsp_YUV422_YUYV_Packed: {
 		cv::Mat data(height, width, CV_8UC2, buffer);
 		cv::cvtColor(data, image, cv::COLOR_YUV2BGR_YUYV);
 		break;
@@ -191,7 +173,7 @@ static unsigned int __stdcall WorkThread(void* pUser)
 	// Create a window for the trackbars
 	cv::namedWindow("Camera Controls", cv::WINDOW_NORMAL);
 	cv::namedWindow("Display", cv::WINDOW_NORMAL);
-	
+
 
 	// Create trackbars for exposure and gain
 	cv::createTrackbar("Exposure", "Camera Controls", &minExposure,
