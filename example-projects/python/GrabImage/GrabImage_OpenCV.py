@@ -5,22 +5,6 @@ import numpy as np
 import cv2
 import time
 
-# Update pixel format constants with correct values
-MV_PIXEL_FORMAT_MONO8 = 17301505
-MV_PIXEL_FORMAT_MONO10 = 17825795
-MV_PIXEL_FORMAT_MONO12 = 17825797
-MV_PIXEL_FORMAT_BAYER_GR8 = 17301512
-MV_PIXEL_FORMAT_BAYER_RG8 = 17301513
-MV_PIXEL_FORMAT_BAYER_GB8 = 17301514
-MV_PIXEL_FORMAT_BAYER_BG8 = 17301515
-MV_PIXEL_FORMAT_RGB8_PACKED = 35127316
-MV_PIXEL_FORMAT_BGR8_PACKED = 35127317
-MV_PIXEL_FORMAT_YUV422_PACKED = 34603039
-MV_PIXEL_FORMAT_YUV422_YUYV = 34603058
-MV_PIXEL_FORMAT_BAYER_RG10 = 17825805
-MV_PIXEL_FORMAT_BAYER_RG10_PACKED = 17563687
-MV_PIXEL_FORMAT_BAYER_RG12 = 17825809
-# MV_PIXEL_FORMAT_BAYER_RG12_PACKED = 17563691
 
 # Get the absolute path to the MvImport directory
 current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -63,24 +47,6 @@ This script interfaces with a camera using the MvImport library, providing funct
 6. **Resource Management**:
    - Ensures proper cleanup of resources, including stopping image grabbing, closing the device, and destroying the handle.
 
-### Global Variables for Pixel Conversion:
-The following global variables must be used whenever there is pixel conversion:
-- MV_PIXEL_FORMAT_MONO8 = 17301505
-- MV_PIXEL_FORMAT_MONO10 = 17825795
-- MV_PIXEL_FORMAT_MONO12 = 17825797
-- MV_PIXEL_FORMAT_BAYER_GR8 = 17301512
-- MV_PIXEL_FORMAT_BAYER_RG8 = 17301513
-- MV_PIXEL_FORMAT_BAYER_GB8 = 17301514
-- MV_PIXEL_FORMAT_BAYER_BG8 = 17301515
-- MV_PIXEL_FORMAT_RGB8_PACKED = 35127316
-- MV_PIXEL_FORMAT_BGR8_PACKED = 35127317
-- MV_PIXEL_FORMAT_YUV422_PACKED = 34603039
-- MV_PIXEL_FORMAT_YUV422_YUYV = 34603058
-- MV_PIXEL_FORMAT_BAYER_RG10 = 17825805
-- MV_PIXEL_FORMAT_BAYER_RG10_PACKED = 17563687
-- MV_PIXEL_FORMAT_BAYER_RG12 = 17825809
-# MV_PIXEL_FORMAT_BAYER_RG12_PACKED = 17563691
-
 ### Dependencies:
 - **MvImport library**: For camera control.
 - **OpenCV**: For image processing and display.
@@ -90,12 +56,11 @@ The following global variables must be used whenever there is pixel conversion:
 This script is designed to be robust and includes error handling for various operations to ensure smooth functionality.
 """
 
-
-
 def set_camera_settings(cam):
-    # Set camera parameters
-    cam.MV_CC_SetFloatValue("ExposureTime", 10000.0)  # Set exposure time
-    cam.MV_CC_SetEnumValue("GainAuto", 0)  # Disable auto gain
+    # Set camera parameters    
+    cam.MV_CC_SetEnumValue("TriggerMode", 0)
+    cam.MV_CC_SetFloatValue("ExposureTime", 10000.0)  
+    cam.MV_CC_SetEnumValue("GainAuto", 0)  
 
 
 def convert_pixel_format(numpy_array, pixel_format, width, height):
@@ -103,12 +68,12 @@ def convert_pixel_format(numpy_array, pixel_format, width, height):
     Convert raw image data to RGB format based on pixel format
     """
     # 8-bit formats
-    if pixel_format == MV_PIXEL_FORMAT_MONO8:
+    if pixel_format == PixelType_Gvsp_Mono8:
         img = numpy_array.reshape((height, width))
         return cv2.cvtColor(img, cv2.COLOR_GRAY2RGB)
     
     # 10-bit format
-    elif pixel_format == MV_PIXEL_FORMAT_MONO10:
+    elif pixel_format == PixelType_Gvsp_Mono10:
         # Reshape to 2D array of 16-bit values
         img = numpy_array.view(np.uint16).reshape(height, width)
         # Scale down from 10-bit to 8-bit
@@ -116,7 +81,7 @@ def convert_pixel_format(numpy_array, pixel_format, width, height):
         return cv2.cvtColor(img, cv2.COLOR_GRAY2RGB)
     
     # 12-bit format
-    elif pixel_format == MV_PIXEL_FORMAT_MONO12:
+    elif pixel_format == PixelType_Gvsp_Mono12:
         # Reshape to 2D array of 16-bit values
         img = numpy_array.view(np.uint16).reshape(height, width)
         # Scale down from 12-bit to 8-bit
@@ -124,50 +89,50 @@ def convert_pixel_format(numpy_array, pixel_format, width, height):
         return cv2.cvtColor(img, cv2.COLOR_GRAY2RGB)
     
     # 8-bit Bayer formats
-    elif pixel_format in [MV_PIXEL_FORMAT_BAYER_GR8, MV_PIXEL_FORMAT_BAYER_RG8, 
-                         MV_PIXEL_FORMAT_BAYER_GB8, MV_PIXEL_FORMAT_BAYER_BG8]:
+    elif pixel_format in [PixelType_Gvsp_BayerGR8, PixelType_Gvsp_BayerRG8, 
+                         PixelType_Gvsp_BayerGB8, PixelType_Gvsp_BayerBG8]:
         img = numpy_array.reshape((height, width))
         conversion_map = {
-            MV_PIXEL_FORMAT_BAYER_GR8: cv2.COLOR_BayerGR2RGB,
-            MV_PIXEL_FORMAT_BAYER_RG8: cv2.COLOR_BayerRG2RGB,
-            MV_PIXEL_FORMAT_BAYER_GB8: cv2.COLOR_BayerGB2RGB,
-            MV_PIXEL_FORMAT_BAYER_BG8: cv2.COLOR_BayerBG2RGB
+            PixelType_Gvsp_BayerGR8: cv2.COLOR_BayerGR2RGB,
+            PixelType_Gvsp_BayerRG8: cv2.COLOR_BayerRG2RGB,
+            PixelType_Gvsp_BayerGB8: cv2.COLOR_BayerGB2RGB,
+            PixelType_Gvsp_BayerBG8: cv2.COLOR_BayerBG2RGB
         }
         return cv2.cvtColor(img, conversion_map[pixel_format])
     
     # 10-bit Bayer formats
-    elif pixel_format == MV_PIXEL_FORMAT_BAYER_RG10:
+    elif pixel_format == PixelType_Gvsp_BayerRG10:
         img = numpy_array.view(np.uint16).reshape(height, width)
         img = (img >> 2).astype(np.uint8)  # Convert 10-bit to 8-bit
         return cv2.cvtColor(img, cv2.COLOR_BayerRG2RGB)
     
     # 10-bit Bayer Packed formats
-    elif pixel_format == MV_PIXEL_FORMAT_BAYER_RG10_PACKED:
+    elif pixel_format == PixelType_Gvsp_BayerRG10_Packed:
         return numpy_array
     
     # 12-bit Bayer formats
-    elif pixel_format == MV_PIXEL_FORMAT_BAYER_RG12:
+    elif pixel_format == PixelType_Gvsp_BayerRG12:
         img = numpy_array.view(np.uint16).reshape(height, width)
         img = (img >> 4).astype(np.uint8)  # Convert 12-bit to 8-bit
         return cv2.cvtColor(img, cv2.COLOR_BayerRG2RGB)
     
     # 12-bit Bayer Packed formats
-    # elif pixel_format == MV_PIXEL_FORMAT_BAYER_RG12_PACKED:
+    # elif pixel_format == PixelType_Gvsp_BayerRG12_Packed:
     #     print("Bayer12")
     #     img = numpy_array.view(np.uint16).reshape(height, width)
     #     img = (img >> 4).astype(np.uint8)  # Convert 12-bit to 8-bit
     #     return cv2.cvtColor(img, cv2.COLOR_BayerRG2RGB)
     
     # Packed RGB/BGR formats
-    elif pixel_format == MV_PIXEL_FORMAT_RGB8_PACKED:
+    elif pixel_format == PixelType_Gvsp_RGB8_Packed:
         return cv2.cvtColor(numpy_array.reshape((height, width, 3)), cv2.COLOR_RGB2BGR)
     
-    elif pixel_format == MV_PIXEL_FORMAT_BGR8_PACKED:
+    elif pixel_format == PixelType_Gvsp_BGR8_Packed:
         img = numpy_array.reshape((height, width, 3))
         return img
     
     # YUV formats YUY422 Packed
-    elif pixel_format == MV_PIXEL_FORMAT_YUV422_PACKED:
+    elif pixel_format == PixelType_Gvsp_YUV422_Packed:
         # First convert to uint8 and reshape to proper dimensions
         data = numpy_array.astype(np.uint8)
         # YUYV format has 2 bytes per pixel, so width needs to be doubled
@@ -177,7 +142,7 @@ def convert_pixel_format(numpy_array, pixel_format, width, height):
         return bgr_img
     
     # YUV formats YUY422 
-    elif pixel_format == MV_PIXEL_FORMAT_YUV422_YUYV:
+    elif pixel_format == PixelType_Gvsp_YUV422_YUYV_Packed:
         # First convert to uint8 and reshape to proper dimensions
         data = numpy_array.astype(np.uint8)
         # YUYV format has 2 bytes per pixel, so width needs to be doubled
@@ -189,6 +154,9 @@ def convert_pixel_format(numpy_array, pixel_format, width, height):
     
     else:
         raise ValueError(f"Unsupported pixel format: {pixel_format}")
+    
+
+
 def getOpenCVImage(cam):
     global count, sum
     stOutFrame = MV_FRAME_OUT()
@@ -310,6 +278,7 @@ if __name__ == "__main__":
             nip3 = ((mvcc_dev_info.SpecialInfo.stGigEInfo.nCurrentIp & 0x0000ff00) >> 8)
             nip4 = (mvcc_dev_info.SpecialInfo.stGigEInfo.nCurrentIp & 0x000000ff)
             print ("current ip: %d.%d.%d.%d\n" % (nip1, nip2, nip3, nip4))
+
         elif mvcc_dev_info.nTLayerType == MV_USB_DEVICE:
             print ("\nu3v device: [%d]" % i)
             strModeName = ""
@@ -325,6 +294,7 @@ if __name__ == "__main__":
                     break
                 strSerialNumber = strSerialNumber + chr(per)
             print ("user serial number: %s" % strSerialNumber)
+            
         elif mvcc_dev_info.nTLayerType == MV_GENTL_CAMERALINK_DEVICE:
             print ("\nCML device: [%d]" % i)
             strModeName = ""
@@ -340,6 +310,7 @@ if __name__ == "__main__":
                     break
                 strSerialNumber = strSerialNumber + chr(per)
             print ("user serial number: %s" % strSerialNumber)
+            
         elif mvcc_dev_info.nTLayerType == MV_GENTL_CXP_DEVICE:
             print ("\nCXP device: [%d]" % i)
             strModeName = ""
@@ -355,6 +326,7 @@ if __name__ == "__main__":
                     break
                 strSerialNumber = strSerialNumber + chr(per)
             print ("user serial number: %s" % strSerialNumber)
+            
         elif mvcc_dev_info.nTLayerType == MV_GENTL_XOF_DEVICE:
             print ("\nXoF device: [%d]" % i)
             strModeName = ""
@@ -396,8 +368,6 @@ if __name__ == "__main__":
         cam.MV_CC_DestroyHandle()
         sys.exit()
 
-    set_camera_settings(cam)  # Apply camera settings
-
     # Set optimal packet size for GigE cameras
     if stDeviceList.nTLayerType == MV_GIGE_DEVICE or stDeviceList.nTLayerType == MV_GENTL_GIGE_DEVICE:
         nPacketSize = cam.MV_CC_GetOptimalPacketSize()
@@ -408,6 +378,9 @@ if __name__ == "__main__":
         else:
             print(f"Warning: Get Packet Size fail! Error code: 0x{nPacketSize:X}")
 
+
+    set_camera_settings(cam)  # Apply camera settings
+    
     exposure_min, exposure_max = get_exposure_limits(cam)
     gain_min, gain_max = get_gain_limits(cam)
 
