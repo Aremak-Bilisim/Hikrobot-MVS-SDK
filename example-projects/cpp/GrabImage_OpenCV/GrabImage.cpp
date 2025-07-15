@@ -3,7 +3,7 @@
 #include <conio.h>
 #include "windows.h"
 #include <chrono>
-#include "../../../common/dependencies/includes/MvCameraControl.h"
+#include "MvCameraControl.h"
 #include <opencv2/opencv.hpp>
 
 
